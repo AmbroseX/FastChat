@@ -2,13 +2,17 @@
 ./stop.sh
 
 # 启动controller
-nohup python3 ./fastchat/serve/controller.py --host 0.0.0.0 --port 22001 > ./logs/controller.log 2>&1 &
+nohup python3 ./fastchat/serve/controller.py \
+    --host 0.0.0.0 --port 22001 \
+    > ./logs/controller.log 2>&1 &
 
 
 # Qwen-1_8B-Chat
 # nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3 ./fastchat/serve/model_worker.py --num-gpus 4 --host 192.168.80.34 --port 22002 --worker http://192.168.80.34:22002 --controller-address http://192.168.80.34:22001 --model-name "Qwen-1_8B-Chat" --model-path /platform_tech/models/Qwen-1_8B-Chat  --max-gpu-memory '80Gib' --limit-worker-concurrency 20 > ./logs/worker.log 2>&1 &
 
 # vllm方式启动
+# 1个任务可以跑35tokens/s
+# 一张A100 80G可以跑 接近20个并行，716tokens/s
 nohup env CUDA_VISIBLE_DEVICES=4 python3 ./fastchat/serve/vllm_worker.py \
     --controller-address http://192.168.80.34:22001 \
     --host 192.168.80.34 --port 22002  \
@@ -16,7 +20,7 @@ nohup env CUDA_VISIBLE_DEVICES=4 python3 ./fastchat/serve/vllm_worker.py \
     --model-path /platform_tech/models/Qwen-1_8B-Chat  \
     --model-name "Qwen-1_8B-Chat" \
     --num-gpus 1 \
-    --gpu_memory_utilization 0.4 \
+    --gpu_memory_utilization 0.5 \
     --max-model-len 8192 --worker-use-ray \
     --limit-worker-concurrency 50 \
     > ./logs/worker.log 2>&1 &
@@ -68,10 +72,6 @@ nohup env CUDA_VISIBLE_DEVICES=6,7 python3  ./fastchat/serve/vllm_worker.py \
     --max-model-len 200000 --worker-use-ray \
     --limit-worker-concurrency 20 \
     >> ./logs/worker.log 2>&1 &
-
-
-
-
 
 
 

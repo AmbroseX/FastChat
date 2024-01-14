@@ -1,14 +1,28 @@
 """Benchmarking script to test the throughput of serving workers."""
 import argparse
 import json
-
+import subprocess
 import requests
 import threading
 import time
 
 from fastchat.conversation import get_conv_template
 
+def get_gpu_name_and_count():
+    """
+    获取显卡模型名称和数量。
 
+    :return: (显卡模型名称, 显卡数量)
+    """
+    # 查询显卡模型名称
+    result_name = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], stdout=subprocess.PIPE)
+    gpu_name = result_name.stdout.decode('utf-8').split('\n')[0].strip().replace(" ", "")
+
+    # 查询显卡数量
+    result_count = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv'], stdout=subprocess.PIPE)
+    gpu_count = len(result_count.stdout.decode('utf-8').strip().split('\n')) - 1
+
+    return gpu_name, gpu_count
 def main():
     if args.worker_address:
         worker_addr = args.worker_address
@@ -54,7 +68,7 @@ def main():
             thread_worker_addr = ret.json()["address"]
         else:
             thread_worker_addr = worker_addr
-        print(f"thread {i} goes to {thread_worker_addr}")
+        # print(f"thread {i} goes to {thread_worker_addr}")
         response = requests.post(
             thread_worker_addr + "/worker_generate_stream",
             headers=headers,
@@ -83,6 +97,8 @@ def main():
     for t in threads:
         t.join()
 
+    print(f"Model: {args.model_name}")
+    print(f"Total threads: {args.n_thread}")
     print(f"Time (POST): {time.time() - tik} s")
     # n_words = 0
     # for i, response in enumerate(results):
