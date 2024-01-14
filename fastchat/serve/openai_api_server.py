@@ -66,7 +66,7 @@ from fastchat.protocol.api_protocol import (
 )
 from fastchat.utils import build_logger
 
-logger = build_logger("openai_api_server", "openai_api_server.log")
+logger = build_logger("openai_api_server", "./logs/openai_api_server.log")
 
 conv_template_map = {}
 
@@ -114,6 +114,7 @@ async def check_api_key(
 ) -> str:
     if app_settings.api_keys:
         if auth is None or (token := auth.credentials) not in app_settings.api_keys:
+            print("invalid_api_key")
             raise HTTPException(
                 status_code=401,
                 detail={
@@ -143,10 +144,13 @@ async def validation_exception_handler(request, exc):
 
 
 async def check_model(request) -> Optional[JSONResponse]:
+    
     controller_address = app_settings.controller_address
+    print(controller_address)
     ret = None
 
     models = await fetch_remote(controller_address + "/list_models", None, "models")
+    print(models)
     if request.model not in models:
         ret = create_error_response(
             ErrorCode.INVALID_MODEL,
@@ -398,9 +402,12 @@ async def get_conv(model_name: str, worker_addr: str):
 @app.get("/v1/models", dependencies=[Depends(check_api_key)])
 async def show_available_models():
     controller_address = app_settings.controller_address
+    print('refresh workers')
+    print(controller_address)
     ret = await fetch_remote(controller_address + "/refresh_all_workers")
+    print(f"list_models:{ret}")
     models = await fetch_remote(controller_address + "/list_models", None, "models")
-
+    print(models)
     models.sort()
     # TODO: return real model permission details
     model_cards = []
@@ -802,6 +809,7 @@ async def count_tokens(request: APITokenCheckRequest):
 @app.post("/api/v1/chat/completions")
 async def create_chat_completion(request: APIChatCompletionRequest):
     """Creates a completion for the chat message"""
+    
     error_check_ret = await check_model(request)
     if error_check_ret is not None:
         return error_check_ret
@@ -919,6 +927,7 @@ def create_openai_api_server():
         allow_headers=args.allowed_headers,
     )
     app_settings.controller_address = args.controller_address
+    print(app_settings.controller_address)
     app_settings.api_keys = args.api_keys
 
     logger.info(f"args: {args}")
