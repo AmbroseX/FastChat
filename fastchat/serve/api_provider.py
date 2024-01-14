@@ -9,7 +9,7 @@ from fastchat.utils import build_logger
 from fastchat.constants import WORKER_API_TIMEOUT
 
 
-logger = build_logger("gradio_web_server", "gradio_web_server.log")
+logger = build_logger("gradio_web_server", "./logs/gradio_web_server.log")
 
 
 def openai_api_stream_iter(

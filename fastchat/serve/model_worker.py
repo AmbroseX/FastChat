@@ -32,7 +32,7 @@ from fastchat.utils import (
 )
 
 worker_id = str(uuid.uuid4())[:8]
-logger = build_logger("model_worker", f"model_worker_{worker_id}.log")
+logger = build_logger("model_worker", f"./model_logs/model_worker_{worker_id}.log")
 
 
 class ModelWorker(BaseModelWorker):
@@ -269,6 +269,7 @@ def create_model_worker():
     parser.add_argument(
         "--controller-address", type=str, default="http://localhost:21001"
     )
+
     add_model_args(parser)
     parser.add_argument(
         "--model-names",
@@ -311,6 +312,7 @@ def create_model_worker():
             raise ValueError(
                 f"Larger --num-gpus ({args.num_gpus}) than --gpus {args.gpus}!"
             )
+        print(f"Using GPUs {args.gpus}")
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus
 
     gptq_config = GptqConfig(

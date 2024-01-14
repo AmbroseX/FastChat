@@ -28,7 +28,7 @@ from fastchat.constants import (
 from fastchat.utils import build_logger
 
 
-logger = build_logger("controller", "controller.log")
+logger = build_logger("controller", "./logs/controller.log")
 
 
 class DispatchMethod(Enum):
@@ -74,6 +74,16 @@ class Controller:
     def register_worker(
         self, worker_name: str, check_heart_beat: bool, worker_status: dict
     ):
+        """
+        Register a worker.
+        Args:
+            worker_name (str): _description_
+            check_heart_beat (bool): _description_
+            worker_status (dict): _description_
+
+        Returns:
+            _type_: _description_
+        """
         if worker_name not in self.worker_info:
             logger.info(f"Register a new worker: {worker_name}")
         else:
@@ -118,6 +128,7 @@ class Controller:
         for w_name, w_info in old_info.items():
             if not self.register_worker(w_name, w_info.check_heart_beat, None):
                 logger.info(f"Remove stale worker: {w_name}")
+        return self.worker_info
 
     def list_models(self):
         model_names = set()
@@ -270,6 +281,7 @@ async def register_worker(request: Request):
 @app.post("/refresh_all_workers")
 async def refresh_all_workers():
     models = controller.refresh_all_workers()
+    return {"models": models}
 
 
 @app.post("/list_models")

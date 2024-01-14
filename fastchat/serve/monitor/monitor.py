@@ -427,7 +427,7 @@ if __name__ == "__main__":
     parser.add_argument("--exclude-model-names", type=str, nargs="+")
     args = parser.parse_args()
 
-    logger = build_logger("monitor", "monitor.log")
+    logger = build_logger("monitor", "./logs/monitor.log")
     logger.info(f"args: {args}")
 
     if args.elo_results_file is None:  # Do live update

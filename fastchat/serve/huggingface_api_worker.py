@@ -39,7 +39,7 @@ from fastchat.serve.base_model_worker import BaseModelWorker
 from fastchat.utils import build_logger
 
 worker_id = str(uuid.uuid4())[:8]
-logger = build_logger("model_worker", f"model_worker_{worker_id}.log")
+logger = build_logger("model_worker", f"./model_logs/model_worker_{worker_id}.log")
 
 workers = []
 worker_map = {}
