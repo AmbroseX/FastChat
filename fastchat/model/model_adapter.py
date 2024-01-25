@@ -1479,6 +1479,34 @@ class InternLMChatAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("internlm-chat")
 
+# # TODO internlm2-chat-20b
+# class Internlm2ChatAdapter(BaseModelAdapter):
+#     """The model adapter for internlm models (e.g., internlm/internlm2-chat-7b)"""
+#     def match(self, model_path: str):
+#         return "internlm2" in model_path.lower()
+
+#     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+#         revision = from_pretrained_kwargs.get("revision", "main")
+#         tokenizer = AutoTokenizer.from_pretrained(
+#             model_path, trust_remote_code=True, revision=revision
+#         )
+#         model = AutoModelForCausalLM.from_pretrained(
+#             model_path,
+#             trust_remote_code=True,
+#             low_cpu_mem_usage=True,
+#             **from_pretrained_kwargs,
+#         )
+#         model = model.eval()
+#         return model, tokenizer
+    
+#     def get_default_conv_template(self, model_path: str) -> Conversation:
+#         # for internlm-13B-Chat
+#         if "chat" in model_path.lower():
+#             if "internlm2" in model_path.lower():
+#                 return get_conv_template("internlm2-chat")
+#             return get_conv_template("internlm-chat")
+#         return get_conv_template("zero_shot")
+
 
 class StarChatAdapter(BaseModelAdapter):
     """The model adapter for HuggingFaceH4/starchat-beta"""
@@ -2305,6 +2333,7 @@ register_model_adapter(BaichuanAdapter)
 register_model_adapter(XGenAdapter)
 register_model_adapter(PythiaAdapter)
 register_model_adapter(InternLMChatAdapter)
+# register_model_adapter(Internlm2ChatAdapter)
 register_model_adapter(StarChatAdapter)
 register_model_adapter(Llama2Adapter)
 register_model_adapter(CuteGPTAdapter)

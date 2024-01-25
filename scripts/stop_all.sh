@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # 定义要查找和终止的进程名称
-process_names=("./fastchat/serve/controller.py" \ 
-    "./fastchat/serve/model_worker.py" \
+process_names=(
+    "./fastchat/serve/controller.py" \ 
     "./fastchat/serve/openai_api_server.py" \
+    "./fastchat/serve/model_worker.py" \
     "./fastchat/serve/gradio_web_server.py" \
     "./fastchat/serve/vllm_worker.py")
 
@@ -21,7 +22,7 @@ for name in "${process_names[@]}"; do
         # 遍历并终止每个找到的进程
         for pid in $pids; do
             echo "终止进程 $pid (属于 $name)"
-            kill $pid
+            kill -9 $pid
         done
     fi
 done
