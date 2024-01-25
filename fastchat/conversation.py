@@ -324,7 +324,6 @@ def register_conv_template(template: Conversation, override: bool = False):
         assert (
             template.name not in conv_templates
         ), f"{template.name} has been registered."
-
     conv_templates[template.name] = template
 
 
@@ -935,6 +934,20 @@ register_conv_template(
     )
 )
 
+
+# # TODO internlm2-chat-20b, internlm2-chat-7b Chat Template
+# # Reference: https://huggingface.co/internlm/internlm2-chat-7b/blob/main/tokenizer_config.json
+# register_conv_template(
+#     Conversation(
+#         name="internlm2-chat",
+#         system_message="",
+#         roles=("<|im_start|>user", "<|im_start|>assistant"),
+#         sep_style=SeparatorStyle.CHATML,
+#         sep="<|im_end|>",
+#         stop_str="<|im_end|>",
+#     )
+# )
+
 # StarChat template
 # reference: https://huggingface.co/spaces/HuggingFaceH4/starchat-playground/blob/main/dialogues.py
 register_conv_template(
@@ -1409,7 +1422,7 @@ register_conv_template(
 )
 
 if __name__ == "__main__":
-    from fastchat.conversation import get_conv_template
+    # from fastchat.conversation import get_conv_template
 
     print("-- Vicuna template --")
     conv = get_conv_template("vicuna_v1.1")
@@ -1449,3 +1462,12 @@ if __name__ == "__main__":
     conv.append_message(conv.roles[0], "How are you?")
     conv.append_message(conv.roles[1], None)
     print(conv.get_prompt())
+
+    # print("\n")
+    # print("-- internlm2 template --")
+    # conv = get_conv_template("internlm2-chat")
+    # conv.append_message(conv.roles[0], "Hello!")
+    # conv.append_message(conv.roles[1], "Hi!")
+    # conv.append_message(conv.roles[0], "How are you?")
+    # conv.append_message(conv.roles[1], None)
+    # print(conv.get_prompt())

@@ -429,6 +429,14 @@ register_model_info(
     "InternLM is a multi-language large-scale language model (LLM), developed by SHLAB.",
 )
 
+# register_model_info(
+#     ["internlm2-chat-7b",
+#      "internlm2-chat-20b"],
+#     "internlm2",
+#     "https://huggingface.co/internlm/internlm2-chat-7b",
+#     "InternLM2 is a multi-language large-scale language model (LLM), developed by SHLAB.",
+# )
+
 register_model_info(
     ["Qwen-7B-Chat"],
     "Qwen",
