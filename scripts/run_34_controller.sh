@@ -1,4 +1,5 @@
 #!/bin/bash
+./scripts/stop_worker.sh
 ./scripts/stop_controller.sh
 
 # 启动controller
