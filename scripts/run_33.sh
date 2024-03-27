@@ -37,7 +37,7 @@
 # # GPU 6,7
 
 # # ChatGLM
-./scripts/run_33_chatglm.sh
+# ./scripts/run_33_chatglm.sh
 # # chatglm3-6b
 # # GPU 5, port: 22005
 # # chatglm3-6b-32k

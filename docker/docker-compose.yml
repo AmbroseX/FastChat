@@ -8,13 +8,14 @@ services:
     image: fastchat:latest
     ports:
       - "21001:21001"
-    entrypoint: ["python3.9", "-m", "fastchat.serve.controller", "--host", "0.0.0.0", "--port", "21001"]
+    entrypoint: ["python3.10", "-m", "fastchat.serve.controller", "--host", "0.0.0.0", "--port", "21001"]
   fastchat-model-worker:
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
       - huggingface:/root/.cache/huggingface
+      - /platfor_tech/models:/models
     image: fastchat:latest
     deploy:
       resources:
@@ -23,7 +24,12 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    entrypoint: ["python3.9", "-m", "fastchat.serve.model_worker", "--model-names", "${FASTCHAT_WORKER_MODEL_NAMES:-vicuna-7b-v1.5}", "--model-path", "${FASTCHAT_WORKER_MODEL_PATH:-lmsys/vicuna-7b-v1.5}", "--worker-address", "http://fastchat-model-worker:21002", "--controller-address", "http://fastchat-controller:21001", "--host", "0.0.0.0", "--port", "21002"]
+    # 如果环境变量FASTCHAT_WORKER_MODEL_NAMES没指定就使用vicuna-7b-v1.5
+    # 如果环境变量FASTCHAT_WORKER_MODEL_PATH没指定就使用lmsys/vicuna-7b-v1.5
+    environment:
+      - FASTCHAT_WORKER_MODEL_NAMES=Qwen-1_8B-Chat
+      - FASTCHAT_WORKER_MODEL_PATH=/models/Qwen-1_8B-Chat
+    entrypoint: ["python3.10", "-m", "fastchat.serve.model_worker", "--model-names", "${FASTCHAT_WORKER_MODEL_NAMES:-vicuna-7b-v1.5}", "--model-path", "${FASTCHAT_WORKER_MODEL_PATH:-lmsys/vicuna-7b-v1.5}", "--worker-address", "http://fastchat-model-worker:21002", "--controller-address", "http://fastchat-controller:21001", "--host", "0.0.0.0", "--port", "21002"]
   fastchat-api-server:
     build:
       context: .
@@ -31,6 +37,6 @@ services:
     image: fastchat:latest
     ports:
       - "8000:8000"
-    entrypoint: ["python3.9", "-m", "fastchat.serve.openai_api_server", "--controller-address", "http://fastchat-controller:21001", "--host", "0.0.0.0", "--port", "8000"]
+    entrypoint: ["python3.10", "-m", "fastchat.serve.openai_api_server", "--controller-address", "http://fastchat-controller:21001", "--host", "0.0.0.0", "--port", "8000"]
 volumes:
   huggingface:

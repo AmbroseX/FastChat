@@ -4,19 +4,19 @@
 # vllm方式启动
 # 1个任务可以跑35tokens/s
 # 一张A100 80G可以跑 接近50个并行，1810tokens/s
-echo "load Model: Qwen-1_8B-Chat" > ./logs/worker33_Qwen-1_8B-Chat.log
-nohup env CUDA_VISIBLE_DEVICES=3 python3 ./fastchat/serve/vllm_worker.py \
-    --controller-address http://192.168.80.34:22001 \
-    --host 192.168.80.33 --port 22002  \
-    --worker-address http://192.168.80.33:22002 \
-    --model-path /platform_tech/models/Qwen-1_8B-Chat  \
-    --model-name "Qwen-1_8B-Chat" \
-    --num-gpus 1 \
-    --gpu_memory_utilization 0.65 \
-    --max-model-len 4096 --worker-use-ray \
-    --enforce-eager \
-    --limit-worker-concurrency 50 \
-    >> ./logs/worker33_Qwen-1_8B-Chat.log 2>&1 &
+# echo "load Model: Qwen-1_8B-Chat" > ./logs/worker_Qwen-1_8B-Chat.log
+# nohup env CUDA_VISIBLE_DEVICES=3 python3 ./fastchat/serve/vllm_worker.py \
+#     --controller-address http://192.168.80.34:22001 \
+#     --host 192.168.80.33 --port 22002  \
+#     --worker-address http://192.168.80.33:22002 \
+#     --model-path /platform_tech/models/Qwen-1_8B-Chat  \
+#     --model-name "Qwen-1_8B-Chat" \
+#     --num-gpus 1 \
+#     --gpu_memory_utilization 0.65 \
+#     --max-model-len 4096 --worker-use-ray \
+#     --enforce-eager \
+#     --limit-worker-concurrency 20 \
+#     >> ./logs/worker_Qwen-1_8B-Chat.log 2>&1 &
 
 
 # Qwen-7B-Chat
@@ -38,20 +38,20 @@ nohup env CUDA_VISIBLE_DEVICES=3 python3 ./fastchat/serve/vllm_worker.py \
 
 # Qwen-14B-Chat
 # vllm方式启动
-echo "load Model: Qwen-14B-Chat"  > ./logs/worker33_Qwen-14B-Chat.log
-nohup env CUDA_VISIBLE_DEVICES=4 python3  ./fastchat/serve/vllm_worker.py \
+echo "load Model: Qwen-14B-Chat"  > ./logs/worker_79_Qwen-14B-Chat.log
+nohup env CUDA_VISIBLE_DEVICES=1,3 python3  ./fastchat/serve/vllm_worker.py \
     --controller-address http://192.168.80.34:22001 \
-    --host 192.168.80.33 --port 22010 \
-    --worker-address http://192.168.80.33:22010   \
+    --host 192.168.190.79 --port 22010 \
+    --worker-address http://192.168.190.79:22010   \
     --model-path /platform_tech/xiongrongkang/models/Qwen-14B-Chat \
     --model-name "Qwen-14B-Chat" \
-    --num-gpus 1 \
-    --gpu_memory_utilization 0.85 \
+    --num-gpus 2 \
+    --gpu_memory_utilization 0.95 \
     --max-model-len 8192 --worker-use-ray \
     --limit-worker-concurrency 20 \
     --tokenizer-mode "auto" \
     --enforce-eager \
-    >> ./logs/worker33_Qwen-14B-Chat.log 2>&1 &
+    >> ./logs/worker_79_Qwen-14B-Chat.log 2>&1 &
 
 # Qwen-14B-Chat
 # echo "load Model: Qwen-14B-Chat"  > ./logs/worker_Qwen-14B-Chat.log

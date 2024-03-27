@@ -7,6 +7,7 @@
 # vllm方式启动
 # 1个任务可以跑35tokens/s
 # 一张A100 80G可以跑 接近50个并行，1810tokens/s
+echo "load Model: Qwen-14B-Chat"  > ./logs/worker_34_Qwen-1_8B-Chat.log
 nohup env CUDA_VISIBLE_DEVICES=2 python3 ./fastchat/serve/vllm_worker.py \
     --controller-address http://192.168.80.34:22001 \
     --host 192.168.80.34 --port 22002  \
@@ -23,6 +24,7 @@ nohup env CUDA_VISIBLE_DEVICES=2 python3 ./fastchat/serve/vllm_worker.py \
 # nohup env CUDA_VISIBLE_DEVICES=4,5 python3 ./fastchat/serve/model_worker.py --num-gpus 2 --host 192.168.80.34 --port 22004 --worker http://192.168.80.34:22004  --controller-address http://192.168.80.34:22001 --model-name "Qwen-7B-Chat" --model-path /platform_tech/models/Qwen-7B-Chat  --max-gpu-memory '80Gib' >> ./logs/worker.log 2>&1 &
 
 # vllm方式启动
+echo "load Model: Qwen-14B-Chat"  > ./logs//worker_34_Qwen-7B-Chat.log
 nohup env CUDA_VISIBLE_DEVICES=2 python3  ./fastchat/serve/vllm_worker.py \
     --controller-address http://192.168.80.34:22001 \
     --host 192.168.80.34 --port 22003  \
@@ -38,17 +40,18 @@ nohup env CUDA_VISIBLE_DEVICES=2 python3  ./fastchat/serve/vllm_worker.py \
 # Qwen-14B-Chat
 # nohup env CUDA_VISIBLE_DEVICES=5 python3 ./fastchat/serve/model_worker.py --num-gpus 2 --host 192.168.80.34 --port 22003 --worker http://192.168.80.34:22004  --controller-address http://192.168.80.34:22001 --model-name "Qwen-14B-Chat" --model-path /platform_tech/models/Qwen-14B-Chat  --max-gpu-memory '80Gib' >> ./logs/worker.log 2>&1 &
 # # vllm方式启动
-# nohup env CUDA_VISIBLE_DEVICES=5 python3  ./fastchat/serve/vllm_worker.py \
-#     --controller-address http://192.168.80.34:22001 \
-#     --host 192.168.80.34 --port 22004  \
-#     --worker-address http://192.168.80.34:22004 \
-#     --model-path /platform_tech/models/Qwen-14B-Chat \
-#     --model-name "Qwen-14B-Chat" \
-#     --num-gpus 1 \
-#     --gpu_memory_utilization 0.7 \
-#     --max-model-len 8192 --worker-use-ray \
-#     --limit-worker-concurrency 20 \
-#     >> ./logs/worker.log 2>&1 &
+echo "load Model: Qwen-14B-Chat"  > ./logs/worker_34_Qwen-14B-Chat.log
+nohup env CUDA_VISIBLE_DEVICES=6 python3  ./fastchat/serve/vllm_worker.py \
+    --controller-address http://192.168.80.34:22001 \
+    --host 192.168.80.34 --port 22004  \
+    --worker-address http://192.168.80.34:22004 \
+    --model-path /platform_tech/xiongrongkang/models/Qwen-14B-Chat \
+    --model-name "Qwen-14B-Chat" \
+    --num-gpus 1 \
+    --gpu_memory_utilization 0.7 \
+    --max-model-len 8192 --worker-use-ray \
+    --limit-worker-concurrency 20 \
+    >> ./logs/worker_34_Qwen-14B-Chat.log 2>&1 &
 
 
 # Yi-34B-200K
