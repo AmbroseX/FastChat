@@ -3,8 +3,11 @@
 # 定义要查找和终止的进程名称
 process_names=(
     "./fastchat/serve/model_worker.py" \
+    "fastchat.serve/model_worker" \
     "./fastchat/serve/gradio_web_server.py" \
+    "fastchat.serve.gradio_web_server" \
     "./fastchat/serve/vllm_worker.py" \
+    "fastchat.serve.vllm_worker" \
     "run_33_internlm2.sh" \
     "run_33_baicuan.sh" \
     "run_33_qwen.sh" \

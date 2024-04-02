@@ -2,8 +2,11 @@
 
 # 定义要查找和终止的进程名称
 process_names=("./fastchat/serve/controller.py" \ 
+    "fastchat.serve.controller" \ 
     "./fastchat/serve/openai_api_server.py" \
-    "./fastchat/serve/gradio_web_server.py"
+    "fastchat.serve.openai_api_server" \
+    "./fastchat/serve/gradio_web_server.py" \
+    "fastchat.serve.gradio_web_server"
     )
 
 # 遍历每个进程名称
