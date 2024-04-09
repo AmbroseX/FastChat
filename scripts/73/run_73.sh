@@ -35,7 +35,7 @@
 
 
 # # vllm方式启动
-nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3  ./fastchat/serve/vllm_worker.py \
+nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3 -m fastchat.serve.vllm_worker \
     --controller-address http://192.168.80.34:22001 \
     --host 192.168.190.73 --port 22006  \
     --worker-address http://192.168.190.73:22006 \
