@@ -1,0 +1,40 @@
+# 使用python轻量级基础镜像
+FROM python:3.10-slim
+WORKDIR /app
+COPY . /app
+
+# 得关闭进度条不然会报错
+RUN pip config --user set global.progress_bar off
+# 安装python3.10和必要的包
+# Install gnupg before adding the GPG key
+# RUN apt-get update && apt-get install -y gnupg && rm -rf /var/lib/apt/lists/*
+
+# RUN apt-key adv --keyserver hkp://pool.sks-keyservers.net:80 --recv-keys 8C8C34C524098CB6
+# RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+# RUN apt-get update -y && apt-get install -y curl supervisor
+
+# 安装pip
+RUN pip install --upgrade pip && \
+    pip3 install -e "." && \
+    pip3 install pydantic==1.10.11 -i https://pypi.mirrors.ustc.edu.cn/simple/ --no-cache-dir
+
+# 设置环境变量
+ENV OPENBLAS_NUM_THREADS=1
+ENV FASTCHAT_LOG_LEVEL=debug
+ENV FASTCHAT_CONTROLLER_ADDRESS=0.0.0.0
+ENV FASTCHAT_CONTROLLER_PORT=22001
+ENV FASTCHAT_OPENAI_API_PORT=28000
+ENV FASTCHAT_API_KEYS=123456,12345678,none
+
+# 复制启动脚本到镜像
+
+COPY ./docker/start_controller.sh ./docker/start_controller.sh
+RUN chmod +x ./docker/start_controller.sh
+# 使用supervisord作为容器的启动命令
+
+# 暴露必要的端口
+EXPOSE 22001 28000
+
+
+ENTRYPOINT ["./docker/start_controller.sh"]
+# sudo docker build -t fastchat-controller:0.1 -f ./docker/Dockerfile.Controller .
