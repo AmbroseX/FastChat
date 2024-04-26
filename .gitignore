@@ -27,6 +27,10 @@ checkpoints_flant5_3b
 *.csv
 tests/state_of_the_union.txt
 
+
+# whl
+*.whl
+
 # Build
 build
 .output.log
