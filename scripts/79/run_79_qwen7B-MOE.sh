@@ -6,7 +6,7 @@
 # 3张A100 40G可以跑 接近50个并行，1810tokens/s
 
 echo "load Model: Qwen1.5-MoE-A2.7B-Chat" > ./logs/worker_79_Qwen1.5-MoE-A2.7B-Chat.log
-nohup env CUDA_VISIBLE_DEVICES=2,3 python3 -m fastchat.serve.vllm_worker \
+nohup env CUDA_VISIBLE_DEVICES=6,7 python3 -m fastchat.serve.vllm_worker \
     --controller-address http://192.168.80.34:22001 \
     --host 192.168.190.79 --port 22027 \
     --worker-address http://192.168.190.79:22027 \
