@@ -255,6 +255,13 @@ if __name__ == "__main__":
         type=lambda s: s.split(","),
         help="Optional display comma separated names",
     )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        choices=["trace", "debug", "info", "warning"],
+        default="info",
+        help="设置日志级别"
+    )
     parser.add_argument("--limit-worker-concurrency", type=int, default=1024)
     parser.add_argument("--no-register", action="store_true")
     parser.add_argument("--num-gpus", type=int, default=1)
@@ -299,4 +306,4 @@ if __name__ == "__main__":
         engine,
         args.conv_template,
     )
-    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    uvicorn.run(app, host=args.host, port=args.port, log_level=args.log_level)

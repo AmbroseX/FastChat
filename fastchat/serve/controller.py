@@ -373,6 +373,13 @@ def create_controller():
         default="shortest_queue",
     )
     parser.add_argument(
+        "--log-level",
+        type=str,
+        choices=["trace", "debug", "info", "warning"],
+        default="info",
+        help="设置日志级别"
+    )
+    parser.add_argument(
         "--ssl",
         action="store_true",
         required=False,
@@ -393,9 +400,9 @@ if __name__ == "__main__":
             app,
             host=args.host,
             port=args.port,
-            log_level="info",
+            log_level=args.log_level,
             ssl_keyfile=os.environ["SSL_KEYFILE"],
             ssl_certfile=os.environ["SSL_CERTFILE"],
         )
     else:
-        uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+        uvicorn.run(app, host=args.host, port=args.port, log_level=args.log_level)
