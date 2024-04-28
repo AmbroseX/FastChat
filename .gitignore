@@ -33,5 +33,5 @@ tests/state_of_the_union.txt
 
 # Build
 build
-.output.log
-model_worker*.log
+output/*.log
+model_worker/*.log
