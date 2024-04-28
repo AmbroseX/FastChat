@@ -1,4 +1,4 @@
-export version=0.1
+export version=0.2.3
 # 步骤1: 追加内容到 .dockerignore
 # echo "model_logs/" >> .dockerignore
 # echo "logs/" >> .dockerignore

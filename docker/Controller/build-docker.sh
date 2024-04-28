@@ -1,5 +1,5 @@
 # 根目录下一键build docker脚本
-export version=0.2.2
+export version=0.2.3
 # 步骤1: 追加内容到 .dockerignore
 # echo "wheel_cache/" >> .dockerignore
 
