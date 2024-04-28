@@ -40,7 +40,7 @@ elif [ ${USE_WORKER} == "MODEL_WORKER" ]; then
     # 启动 fastchat-model-worker 服务
     echo "load Model: worker_${FASTCHAT_WORKER_MODEL_NAMES}" > ./logs/worker_${FASTCHAT_WORKER_MODEL_NAMES}.log
     env CUDA_VISIBLE_DEVICES="${FASTCHAT_DOCKER_CUDA_DEVICE}" python3 -m fastchat.serve.model_worker \
-        --controller-address "http://${FASTCHAT_CONTROLLER_ADDRESS}:21001" \
+        --controller-address "http://${FASTCHAT_CONTROLLER_ADDRESS}:${FASTCHAT_CONTROLLER_PORT}" \
         --worker-address "http://${FASTCHAT_WORKER_ADDRESS}:${FASTCHAT_WORKER_PORT}" \
         --host ${FASTCHAT_WORKER_ADDRESS} --port ${FASTCHAT_WORKER_PORT} \
         --model-names "${FASTCHAT_WOKRER_MODEL_NAMES}" \
