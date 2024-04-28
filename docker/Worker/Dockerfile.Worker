@@ -5,7 +5,27 @@ FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 # RUN echo "Build date: ${BUILD_DATE}"
 # RUN python3 --version
 WORKDIR /app
-COPY . /app
+COPY pyproject.toml \
+    .pylintrc /app/
+COPY docker /app/docker/
+COPY fastchat /app/fastchat/
+COPY tests /app/tests/
+COPY wheel_cache/xformers-0.0.22.post4+cu118-cp310-cp310-manylinux2014_x86_64.whl  \
+    wheel_cache/xformers-0.0.23.post1-cp310-cp310-manylinux2014_x86_64.whl  \
+    wheel_cache/torch-2.1.0+cu118-cp310-cp310-linux_x86_64.whl \
+    wheel_cache/torch-2.1.2+cu118-cp310-cp310-linux_x86_64.whl  \
+    wheel_cache/cupy_cuda12x-12.1.0-cp310-cp310-manylinux2014_x86_64.whl  \
+    wheel_cache/pynvml-11.5.0-py3-none-any.whl  \
+    wheel_cache/nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl  \
+    wheel_cache/nvidia_cuda_cupti_cu12-12.1.105-py3-none-manylinux1_x86_64.whl  \
+    wheel_cache/nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-manylinux1_x86_64.whl  \
+    wheel_cache/nvidia_cuda_runtime_cu12-12.1.105-py3-none-manylinux1_x86_64.whl  \
+    wheel_cache/nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl  \
+    wheel_cache/nvidia_cufft_cu12-11.0.2.54-py3-none-manylinux1_x86_64.whl  \
+    wheel_cache/nvidia_curand_cu12-10.3.2.106-py3-none-manylinux1_x86_64.whl  \
+    wheel_cache/nvidia_nvjitlink_cu12-12.1.105-py3-none-manylinux1_x86_64.whl \
+    wheel_cache/nvidia_cusparse_cu12-12.1.0.106-py3-none-manylinux1_x86_64.whl \
+    wheel_cache/nvidia_cusolver_cu12-11.4.5.107-py3-none-manylinux1_x86_64.whl /app/wheel_cache/
 
 # 设置pip源为清华大学镜像源
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
@@ -16,22 +36,6 @@ RUN pip config --user set global.progress_bar off && \
     pip3 install -e "." && \
     pip3 install "transformers==4.39.1" einops transformers_stream_generator==0.0.5 accelerate peft sentencepiece protobuf autoawq --no-cache-dir && \
     pip3 install "fastrlock>=0.5" --no-cache-dir
-
-# WORKDIR /app/wheel_cache/
-# COPY wheel_cache/xformers-0.0.22.post4+cu118-cp310-cp310-manylinux2014_x86_64.whl /app/wheel_cache/
-# COPY ./wheel_cache/xformers-0.0.22.post4+cu118-cp310-cp310-manylinux2014_x86_64.whl  \
-#     ./wheel_cache/torch-2.1.2+cu118-cp310-cp310-linux_x86_64.whl  \
-#     ./wheel_cache/cupy_cuda12x-12.1.0-cp310-cp310-manylinux2014_x86_64.whl  \
-#     ./wheel_cache/pynvml-11.5.0-py3-none-any.whl  \
-#     ./wheel_cache/xformers-0.0.23.post1-cp310-cp310-manylinux2014_x86_64.whl  \
-#     ./wheel_cache/nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl  \
-#     ./wheel_cache/nvidia_cuda_cupti_cu12-12.1.105-py3-none-manylinux1_x86_64.whl  \
-#     ./wheel_cache/nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-manylinux1_x86_64.whl  \
-#     ./wheel_cache/nvidia_cuda_runtime_cu12-12.1.105-py3-none-manylinux1_x86_64.whl  \
-#     ./wheel_cache/nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl  \
-#     ./wheel_cache/nvidia_cufft_cu12-11.0.2.54-py3-none-manylinux1_x86_64.whl  \
-#     ./wheel_cache/nvidia_curand_cu12-10.3.2.106-py3-none-manylinux1_x86_64.whl  \
-#     ./wheel_cache/nvidia_cusolver_cu12-11.4.5.107-py3-none-manylinux1_x86_64.whl /app/wheel_cache/
 
 # Downloading cupy_cuda12x-12.1.0-cp310-cp310-manylinux2014_x86_64.whl (83.0 MB)
 # Downloading pynvml-11.5.0-py3-none-any.whl (53 kB)
@@ -66,8 +70,8 @@ RUN pip3 install --no-index --find-links=./wheel_cache ./wheel_cache/cupy_cuda12
 # 得在线装,有很多依赖,否则全部得一个一个找下载到本地提前安装
 # https://github.com/vllm-project/vllm/releases
 RUN pip3 install https://github.com/vllm-project/vllm/releases/download/v0.3.3/vllm-0.3.3+cu118-cp310-cp310-manylinux1_x86_64.whl && \
+    pip3 install --no-index --find-links=./wheel_cache ./wheel_cache/torch-2.1.0+cu118-cp310-cp310-linux_x86_64.whl && \
     pip3 install --no-index --find-links=./wheel_cache ./wheel_cache/xformers-0.0.22.post4+cu118-cp310-cp310-manylinux2014_x86_64.whl && \
-    pip3 install --no-index --find-links=./wheel_cache ./wheel_cache/torch-2.1.2+cu118-cp310-cp310-linux_x86_64.whl && \
     pip3 install pydantic==1.10.11 --no-cache-dir && \
     # 删除不必要的文件
     rm -rf /app/wheel_cache && \
