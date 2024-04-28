@@ -1,3 +1,4 @@
+# 单卡80G显存
 export version=0.2.4
 # sudo docker exec -it fastchat-all /bin/bash
 export FASTCHAT_CONTROLLER_PORT=8081
