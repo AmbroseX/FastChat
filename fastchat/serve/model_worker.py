@@ -73,7 +73,7 @@ class ModelWorker(BaseModelWorker):
             conv_template=conv_template,
         )
 
-        logger.info(f"Loading the model {self.model_names} on worker {worker_id} ...")
+        logger.info(f"Loading the model {self.model_names} on addr {self.worker_addr}, worker {worker_id} ...")
         self.model, self.tokenizer = load_model(
             model_path,
             revision=revision,

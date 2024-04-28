@@ -68,6 +68,7 @@ class VLLMWorker(BaseModelWorker):
         self.call_ct += 1
 
         context = params.pop("prompt")
+        x_trace_id = params.pop("x_trace_id")
         request_id = params.pop("request_id")
         temperature = float(params.get("temperature", 1.0))
         top_p = float(params.get("top_p", 1.0))
@@ -117,7 +118,6 @@ class VLLMWorker(BaseModelWorker):
             best_of=best_of,
         )
         results_generator = engine.generate(context, sampling_params, request_id)
-
         async for request_output in results_generator:
             prompt = request_output.prompt
             if echo:
@@ -163,6 +163,9 @@ class VLLMWorker(BaseModelWorker):
             # Emit twice here to ensure a 'finish_reason' with empty content in the OpenAI API response.
             # This aligns with the behavior of model_worker.
             if request_output.finished:
+                logger.info(f"Results generator {request_id}: "
+                        f"output: {ret}."
+                    )
                 yield (json.dumps({**ret, **{"finish_reason": None}}) + "\0").encode()
             yield (json.dumps(ret) + "\0").encode()
 
@@ -170,6 +173,7 @@ class VLLMWorker(BaseModelWorker):
                 break
 
     async def generate(self, params):
+        logger.info(f"Generating with params: {params}")
         async for x in self.generate_stream(params):
             pass
         return json.loads(x[:-1].decode())
@@ -199,7 +203,8 @@ def create_background_tasks(request_id):
 async def api_generate_stream(request: Request):
     params = await request.json()
     await acquire_worker_semaphore()
-    request_id = random_uuid()
+    # request_id = random_uuid()
+    request_id = params.get("x_trace_id", random_uuid())
     params["request_id"] = request_id
     params["request"] = request
     generator = worker.generate_stream(params)
@@ -211,7 +216,8 @@ async def api_generate_stream(request: Request):
 async def api_generate(request: Request):
     params = await request.json()
     await acquire_worker_semaphore()
-    request_id = random_uuid()
+    # request_id = random_uuid()
+    request_id = params.get("x_trace_id", random_uuid())
     params["request_id"] = request_id
     params["request"] = request
     output = await worker.generate(params)

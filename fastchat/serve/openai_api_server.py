@@ -11,11 +11,11 @@ import asyncio
 import argparse
 import json
 import os
-from typing import Generator, Optional, Union, Dict, List, Any
+from typing import AsyncGenerator, Generator, Optional, Union, Dict, List, Any
 
 import aiohttp
 import fastapi
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
@@ -72,6 +72,9 @@ conv_template_map = {}
 
 fetch_timeout = aiohttp.ClientTimeout(total=3 * 3600)
 
+def random_uuid() -> str:
+    import uuid
+    return str(uuid.uuid4().hex)
 
 async def fetch_remote(url, pload=None, name=None):
     async with aiohttp.ClientSession(timeout=fetch_timeout) as session:
@@ -269,6 +272,17 @@ def _add_to_set(s, new_stop):
     else:
         new_stop.update(s)
 
+async def get_header_item(request,item:str='') -> str:
+    """_summary_
+    Args:
+        request (_type_): _description_
+    Returns:
+        str: _description_
+    """
+    x_trace_id = request.headers.get(item)
+    if x_trace_id is None:
+        x_trace_id = random_uuid()
+    return str(x_trace_id)
 
 async def get_gen_params(
     model_name: str,
@@ -286,6 +300,7 @@ async def get_gen_params(
     stop: Optional[Union[str, List[str]]],
     best_of: Optional[int] = None,
     use_beam_search: Optional[bool] = None,
+    x_trace_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     conv = await get_conv(model_name, worker_addr)
     conv = Conversation(
@@ -349,6 +364,7 @@ async def get_gen_params(
         "max_new_tokens": max_tokens,
         "echo": echo,
         "stop_token_ids": conv.stop_token_ids,
+        "x_trace_id": x_trace_id,
     }
 
     if len(images) > 0:
@@ -365,7 +381,7 @@ async def get_gen_params(
 
     gen_params["stop"] = list(new_stop)
 
-    logger.debug(f"==== request ====\n{gen_params}")
+    logger.debug(f"==== request ====\n{gen_params}-{x_trace_id}")
     return gen_params
 
 
@@ -417,16 +433,20 @@ async def show_available_models():
 
 
 @app.post("/v1/chat/completions", dependencies=[Depends(check_api_key)])
-async def create_chat_completion(request: ChatCompletionRequest):
+async def create_chat_completion(raw_request:Request, request: ChatCompletionRequest):
     """Creates a completion for the chat message"""
+    worker_addr = await get_worker_address(request.model)
+    x_trace_id = await get_header_item(raw_request, 'x_trace_id')
+    logger.info(f"POST /v1/chat/completions x_trace_id: {x_trace_id}, "
+                f"worker request: {request}."
+                )
+    
     error_check_ret = await check_model(request)
     if error_check_ret is not None:
         return error_check_ret
     error_check_ret = check_requests(request)
     if error_check_ret is not None:
         return error_check_ret
-
-    worker_addr = await get_worker_address(request.model)
 
     gen_params = await get_gen_params(
         request.model,
@@ -440,6 +460,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
         max_tokens=request.max_tokens,
         echo=False,
         stop=request.stop,
+        x_trace_id=x_trace_id,
     )
 
     max_new_tokens, error_check_ret = await check_length(
@@ -488,7 +509,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             for usage_key, usage_value in task_usage.dict().items():
                 setattr(usage, usage_key, getattr(usage, usage_key) + usage_value)
 
-    return ChatCompletionResponse(model=request.model, choices=choices, usage=usage)
+    return ChatCompletionResponse(id=f"chatcmpl-{x_trace_id}", model=request.model, choices=choices, usage=usage)
 
 
 async def chat_completion_stream_generator(
@@ -498,7 +519,10 @@ async def chat_completion_stream_generator(
     Event stream format:
     https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format
     """
-    id = f"chatcmpl-{shortuuid.random()}"
+    if gen_params['x_trace_id']:
+        id = f"chatcmpl-{gen_params['x_trace_id']}"
+    else:
+        id = f"chatcmpl-{shortuuid.random()}"
     finish_stream_events = []
     for i in range(n):
         # First chunk with role
@@ -548,7 +572,11 @@ async def chat_completion_stream_generator(
 
 
 @app.post("/v1/completions", dependencies=[Depends(check_api_key)])
-async def create_completion(request: CompletionRequest):
+async def create_completion(raw_request:Request, request: CompletionRequest):
+    worker_addr = await get_worker_address(request.model)
+    x_trace_id = await get_header_item(raw_request, 'x_trace_id')
+    logger.info(f"POST /v1/completions x_trace_id:{x_trace_id}")
+    
     error_check_ret = await check_model(request)
     if error_check_ret is not None:
         return error_check_ret
@@ -571,7 +599,7 @@ async def create_completion(request: CompletionRequest):
 
     if request.stream:
         generator = generate_completion_stream_generator(
-            request, request.n, worker_addr
+            request, request.n, worker_addr, x_trace_id
         )
         return StreamingResponse(generator, media_type="text/event-stream")
     else:
@@ -592,6 +620,7 @@ async def create_completion(request: CompletionRequest):
                 stop=request.stop,
                 best_of=request.best_of,
                 use_beam_search=request.use_beam_search,
+                x_trace_id=x_trace_id,
             )
             for i in range(request.n):
                 content = asyncio.create_task(
@@ -627,7 +656,7 @@ async def create_completion(request: CompletionRequest):
 
 
 async def generate_completion_stream_generator(
-    request: CompletionRequest, n: int, worker_addr: str
+    request: CompletionRequest, n: int, worker_addr: str, x_trace_id:str
 ):
     model_name = request.model
     id = f"cmpl-{shortuuid.random()}"
@@ -648,6 +677,7 @@ async def generate_completion_stream_generator(
                 logprobs=request.logprobs,
                 echo=request.echo,
                 stop=request.stop,
+                x_trace_id=x_trace_id,
             )
             async for content in generate_completion_stream(gen_params, worker_addr):
                 if content["error_code"] != 0:
@@ -807,8 +837,13 @@ async def count_tokens(request: APITokenCheckRequest):
 
 
 @app.post("/api/v1/chat/completions")
-async def create_chat_completion(request: APIChatCompletionRequest):
+async def create_chat_completion(raw_request:Request, request: APIChatCompletionRequest):
     """Creates a completion for the chat message"""
+    worker_addr = await get_worker_address(request.model)
+    x_trace_id = await get_header_item(raw_request, 'x_trace_id')
+    logger.info(f"POST /v1/chat/completions x_trace_id: {x_trace_id}, "
+                f"worker request: {request}."
+                )
     
     error_check_ret = await check_model(request)
     if error_check_ret is not None:
@@ -831,6 +866,7 @@ async def create_chat_completion(request: APIChatCompletionRequest):
         max_tokens=request.max_tokens,
         echo=False,
         stop=request.stop,
+        x_trace_id=x_trace_id,
     )
 
     if request.repetition_penalty is not None:
@@ -878,7 +914,7 @@ async def create_chat_completion(request: APIChatCompletionRequest):
         for usage_key, usage_value in task_usage.dict().items():
             setattr(usage, usage_key, getattr(usage, usage_key) + usage_value)
 
-    return ChatCompletionResponse(model=request.model, choices=choices, usage=usage)
+    return ChatCompletionResponse(id=f"chatcmpl-{x_trace_id}", model=request.model, choices=choices, usage=usage)
 
 
 ### END GENERAL API - NOT OPENAI COMPATIBLE ###
@@ -934,7 +970,7 @@ def create_openai_api_server():
         allow_headers=args.allowed_headers,
     )
     app_settings.controller_address = args.controller_address
-    print(app_settings.controller_address)
+    print(f"controller_address:{app_settings.controller_address}")
     app_settings.api_keys = args.api_keys
 
     logger.info(f"args: {args}")

@@ -1,5 +1,5 @@
 # 根目录下一键build docker脚本
-export version=0.2.3
+export version=0.2.5
 # 步骤1: 追加内容到 .dockerignore
 # echo "model_logs/" >> .dockerignore
 # echo "logs/" >> .dockerignore

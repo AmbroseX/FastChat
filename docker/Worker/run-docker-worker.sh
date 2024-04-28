@@ -1,4 +1,4 @@
-export version=0.2.3
+export version=0.2.5
 sudo docker stop fastchat-worker && sudo docker rm fastchat-worker
 # Controller地址
 export FASTCHAT_CONTROLLER_ADDRESS='192.168.190.79'
@@ -9,6 +9,7 @@ export FASTCHAT_WORKER_ADDRESS='192.168.190.79'
 export FASTCHAT_WORKER_PORT=22003
 export FASTCHAT_WORKER_MODEL_NAMES='fastchat-worker'
 export docker_name='fastchat-worker'
+export FASTCHAT_CONV_TEMPLATE=''
 export model_path='/platform_tech/models/Qwen1.5-1.8B-Chat'
 
 sudo docker run --rm -d --security-opt seccomp:unconfined -e OPENBLAS_NUM_THREADS=1 \
@@ -24,6 +25,7 @@ sudo docker run --rm -d --security-opt seccomp:unconfined -e OPENBLAS_NUM_THREAD
     -p ${FASTCHAT_WORKER_PORT}:${FASTCHAT_WORKER_PORT}\
     -e FASTCHAT_WORKER_MODEL_NAMES=${FASTCHAT_WORKER_MODEL_NAMES} \
     -e FASTCHAT_WORKER_MODEL_PATH='/app/models/' \
+    -e FASTCHAT_CONV_TEMPLATE=${FASTCHAT_CONV_TEMPLATE} \
     -e RAY_USE_MULTIPROCESSING_CPU_COUNT= \
     -e RAY_DISABLE_DOCKER_CPU_WARNING=1 \
     -e RAY_memory_monitor_refresh_ms=0 \

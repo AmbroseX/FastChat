@@ -27,8 +27,16 @@ if ! [[ "$NUM_GPUS" =~ ^[0-9]+$ ]]; then
     echo "环境变量NUM_GPUS必须是一个正整数。"
     exit 1
 fi
-# 生成从0到NUM_GPUS-1的序列
-FASTCHAT_DOCKER_CUDA_DEVICE=$(seq -s ',' 0 $((NUM_GPUS - 1)))
+
+# 检查CUDA_VISIBLE_DEVICES环境变量是否已设置
+if [ -n "$CUDA_VISIBLE_DEVICES" ]; then
+    # 如果CUDA_VISIBLE_DEVICES已设置，直接使用其值
+    FASTCHAT_DOCKER_CUDA_DEVICE=$CUDA_VISIBLE_DEVICES
+else
+    # 否则，生成从0到NUM_GPUS-1的序列
+    FASTCHAT_DOCKER_CUDA_DEVICE=$(seq -s ',' 0 $((NUM_GPUS - 1)))
+fi
+
 # 设置环境变量FASTCHAT_DOCKER_CUDA_DEVICE
 export FASTCHAT_DOCKER_CUDA_DEVICE
 echo "已设置FASTCHAT_DOCKER_CUDA_DEVICE为$FASTCHAT_DOCKER_CUDA_DEVICE"
@@ -41,6 +49,7 @@ if [ ${USE_WORKER} == "VLLM_WORKER" ]; then
         --worker-address http://${FASTCHAT_WORKER_ADDRESS}:${FASTCHAT_WORKER_PORT} \
         --model-name ${FASTCHAT_WORKER_MODEL_NAMES} \
         --model-path ${FASTCHAT_WORKER_MODEL_PATH} \
+        --conv-template ${FASTCHAT_CONV_TEMPLATE} \
         --num-gpus ${NUM_GPUS} \
         --gpu_memory_utilization ${GPU_MEMORY_UTILIZATION} \
         --max-model-len ${MAX_MODEL_LEN} --worker-use-ray \
@@ -56,6 +65,7 @@ elif [ ${USE_WORKER} == "MODEL_WORKER" ]; then
         --host ${FASTCHAT_WORKER_ADDRESS} --port ${FASTCHAT_WORKER_PORT} \
         --model-names "${FASTCHAT_WOKRER_MODEL_NAMES}" \
         --model-path "${FASTCHAT_WORKER_MODEL_PATH}" \
+        --conv-template ${FASTCHAT_CONV_TEMPLATE} \
         --num-gpus ${NUM_GPUS} \
         --limit-worker-concurrency ${LIMIT_WORKER} | tee ./logs/worker_${FASTCHAT_WORKER_MODEL_NAMES}.log  &
 echo "Invalid USE_COMMAND value. Please set USE_WORKER to VLLM_WORKER or MODEL_WORKER"
