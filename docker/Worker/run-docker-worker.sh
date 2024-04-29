@@ -13,7 +13,8 @@ export FASTCHAT_CONV_TEMPLATE=''
 export model_path='/platform_tech/models/Qwen1.5-1.8B-Chat'
 
 sudo docker run --rm -d --security-opt seccomp:unconfined -e OPENBLAS_NUM_THREADS=1 \
-    --gpus '"device=6"' -e NUM_GPUS=1 \
+    -e CUDA_VISIBLE_DEVICES=6 \
+    --gpus all -e NUM_GPUS=1 \
     -e TZ=Asia/Shanghai \
     -e NVIDIA_DRIVER_CAPABILITIES="compute,utility" \
     --cpus="10" --memory="20g" --shm-size="8gb" \
