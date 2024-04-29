@@ -1,5 +1,5 @@
 # 单卡80G显存
-export version=0.2.4
+export version=0.2.5
 # sudo docker exec -it fastchat-all /bin/bash
 export FASTCHAT_CONTROLLER_PORT=8081
 export FASTCHAT_OPENAI_API_PORT=8082
@@ -13,7 +13,8 @@ export log_path=/platform_tech/logs/${FASTCHAT_WORKER_MODEL_NAMES}
 export model_logs_path=/platform_tech/logs/${FASTCHAT_WORKER_MODEL_NAMES}
 
 sudo docker run --rm -d --security-opt seccomp:unconfined -e OPENBLAS_NUM_THREADS=1 \
-    --gpus '"device=6"' -e NUM_GPUS=1 \
+    -e CUDA_VISIBLE_DEVICES=6 \
+    --gpus all -e NUM_GPUS=1 \
     -e TZ=Asia/Shanghai \
     -e NVIDIA_DRIVER_CAPABILITIES="compute,utility" \
     --cpus="2" --memory="10g" --shm-size="5gb" \
