@@ -67,13 +67,15 @@ Please do not upload any private information.
 The service collects user dialogue data, including both text and images, and reserves the right to distribute it under a Creative Commons Attribution (CC-BY) or a similar license.
 
 ### Acknowledgment
-We thank [Kaggle](https://www.kaggle.com/), [MBZUAI](https://mbzuai.ac.ae/), [a16z](https://www.a16z.com/), [Together AI](https://www.together.ai/), [Anyscale](https://www.anyscale.com/), [HuggingFace](https://huggingface.co/) for their generous [sponsorship](https://lmsys.org/donations/).
+We thank [UC Berkeley SkyLab](https://sky.cs.berkeley.edu/), [Kaggle](https://www.kaggle.com/), [MBZUAI](https://mbzuai.ac.ae/), [a16z](https://www.a16z.com/), [Together AI](https://www.together.ai/), [Hyperbolic](https://hyperbolic.xyz/), [Anyscale](https://www.anyscale.com/), [HuggingFace](https://huggingface.co/) for their generous [sponsorship](https://lmsys.org/donations/).
 
 <div class="sponsor-image-about">
+    <img src="https://storage.googleapis.com/public-arena-asset/skylab.png" alt="SkyLab">
     <img src="https://storage.googleapis.com/public-arena-asset/kaggle.png" alt="Kaggle">
     <img src="https://storage.googleapis.com/public-arena-asset/mbzuai.jpeg" alt="MBZUAI">
     <img src="https://storage.googleapis.com/public-arena-asset/a16z.jpeg" alt="a16z">
     <img src="https://storage.googleapis.com/public-arena-asset/together.png" alt="Together AI">
+    <img src="https://storage.googleapis.com/public-arena-asset/hyperbolic_logo.png" alt="Hyperbolic">
     <img src="https://storage.googleapis.com/public-arena-asset/anyscale.png" alt="AnyScale">
     <img src="https://storage.googleapis.com/public-arena-asset/huggingface.png" alt="HuggingFace">
 </div>
@@ -97,12 +99,13 @@ api_endpoint_info = {}
 
 
 class State:
-    def __init__(self, model_name):
+    def __init__(self, model_name, is_vision=False):
         self.conv = get_conversation_template(model_name)
         self.conv_id = uuid.uuid4().hex
         self.skip_next = False
         self.model_name = model_name
         self.oai_thread_id = None
+        self.is_vision = is_vision
 
         self.regen_support = True
         if "browsing" in model_name:
@@ -138,13 +141,18 @@ def set_global_vars(controller_url_, enable_moderation_, use_remote_storage_):
     use_remote_storage = use_remote_storage_
 
 
-def get_conv_log_filename():
+def get_conv_log_filename(is_vision=False):
     t = datetime.datetime.now()
-    name = os.path.join(LOGDIR, f"{t.year}-{t.month:02d}-{t.day:02d}-conv.json")
+    conv_log_filename = f"{t.year}-{t.month:02d}-{t.day:02d}-conv.json"
+    if is_vision:
+        name = os.path.join(LOGDIR, f"vision-tmp-{conv_log_filename}")
+    else:
+        name = os.path.join(LOGDIR, conv_log_filename)
+
     return name
 
 
-def get_model_list(controller_url, register_api_endpoint_file, multimodal):
+def get_model_list(controller_url, register_api_endpoint_file, vision_arena):
     global api_endpoint_info
 
     # Add models from the controller
@@ -152,7 +160,7 @@ def get_model_list(controller_url, register_api_endpoint_file, multimodal):
         ret = requests.post(controller_url + "/refresh_all_workers")
         assert ret.status_code == 200
 
-        if multimodal:
+        if vision_arena:
             ret = requests.post(controller_url + "/list_multimodal_models")
             models = ret.json()["models"]
         else:
@@ -165,11 +173,12 @@ def get_model_list(controller_url, register_api_endpoint_file, multimodal):
     if register_api_endpoint_file:
         api_endpoint_info = json.load(open(register_api_endpoint_file))
         for mdl, mdl_dict in api_endpoint_info.items():
-            mdl_multimodal = mdl_dict.get("multimodal", False)
-            if multimodal and mdl_multimodal:
-                models += [mdl]
-            elif not multimodal and not mdl_multimodal:
-                models += [mdl]
+            mdl_vision = mdl_dict.get("vision-arena", False)
+            mdl_text = mdl_dict.get("text-arena", True)
+            if vision_arena and mdl_vision:
+                models.append(mdl)
+            if not vision_arena and mdl_text:
+                models.append(mdl)
 
     # Remove anonymous models
     models = list(set(models))
@@ -210,7 +219,7 @@ def load_demo(url_params, request: gr.Request):
 
     if args.model_list_mode == "reload":
         models, all_models = get_model_list(
-            controller_url, args.register_api_endpoint_file, False
+            controller_url, args.register_api_endpoint_file, vision_arena=False
         )
 
     return load_demo_single(models, url_params)
@@ -281,8 +290,10 @@ def get_ip(request: gr.Request):
     return ip
 
 
-def _prepare_text_with_image(state, text, image):
-    if image is not None:
+def _prepare_text_with_image(state, text, images):
+    if images is not None and len(images) > 0:
+        image = images[0]
+
         if len(state.conv.get_images()) > 0:
             # reset convo with new image
             state.conv = get_conversation_template(state.model_name)
@@ -386,25 +397,6 @@ def is_limit_reached(model_name, ip):
         return None
 
 
-def upload_image_file_to_gcs(image, filename):
-    from google.cloud import storage
-    import io
-
-    storage_client = storage.Client()
-    # upload file to GCS
-    bucket = storage_client.get_bucket("arena_user_content")
-
-    blob = bucket.blob(f"{filename}")
-    if not blob.exists():
-        buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
-        buffer.seek(0)
-        blob.upload_from_file(buffer, content_type="image/png")
-
-    blob.make_public()
-    return blob.public_url
-
-
 def bot_response(
     state,
     temperature,
@@ -467,7 +459,6 @@ def bot_response(
         # Construct prompt.
         # We need to call it here, so it will not be affected by "▌".
         prompt = conv.get_prompt()
-
         # Set repetition_penalty
         if "t5" in model_name:
             repetition_penalty = 1.2
@@ -491,6 +482,9 @@ def bot_response(
             if recommended_config is not None:
                 temperature = recommended_config.get("temperature", temperature)
                 top_p = recommended_config.get("top_p", top_p)
+                max_new_tokens = recommended_config.get(
+                    "max_new_tokens", max_new_tokens
+                )
 
         stream_iter = get_api_provider_stream_iter(
             conv,
@@ -560,31 +554,9 @@ def bot_response(
     finish_tstamp = time.time()
     logger.info(f"{output}")
 
-    # We load the image because gradio accepts base64 but that increases file size by ~1.33x
-    loaded_images = [load_image(image) for image in images]
-    images_hash = [hashlib.md5(image.tobytes()).hexdigest() for image in loaded_images]
-    image_filenames = []
-    for image, hash_str in zip(loaded_images, images_hash):
-        t = datetime.datetime.now()
-        filename = os.path.join(
-            "serve_images",
-            f"{hash_str}.jpg",
-        )
+    conv.save_new_images(use_remote_storage=use_remote_storage)
 
-        if use_remote_storage:
-            image_url = upload_image_file_to_gcs(image, filename)
-            image_filenames.append(image_url)
-        else:
-            filename = os.path.join(LOGDIR, filename)
-            if not os.path.isfile(filename):
-                os.makedirs(os.path.dirname(filename), exist_ok=True)
-                image.save(filename)
-
-            image_filenames.append(hash_str)
-
-    filename = get_conv_log_filename()
-    if "llava" in model_name:
-        filename = filename.replace("2024", "vision-tmp-2024")
+    filename = get_conv_log_filename(is_vision=state.is_vision)
 
     with open(filename, "a") as fout:
         data = {
@@ -600,7 +572,6 @@ def bot_response(
             "finish": round(finish_tstamp, 4),
             "state": state.dict(),
             "ip": get_ip(request),
-            "images": image_filenames,
         }
         fout.write(json.dumps(data) + "\n")
     get_remote_logger().log(data)
@@ -618,10 +589,10 @@ block_css = """
     padding-bottom: 6px;
 }
 #arena_leaderboard_dataframe table {
-    font-size: 115%;
+    font-size: 110%;
 }
 #full_leaderboard_dataframe table {
-    font-size: 115%;
+    font-size: 110%;
 }
 #model_description_markdown {
     font-size: 110% !important;
@@ -644,9 +615,6 @@ block_css = """
 }
 #chatbot .prose {
     font-size: 105% !important;
-}
-footer {
-    display:none !important;
 }
 .sponsor-image-about img {
     margin: 0 20px;
@@ -702,6 +670,20 @@ footer {
     0%, 50% { opacity: 1; }
     50.1%, 100% { opacity: 0; }
 }
+
+.app {
+  max-width: 100% !important;
+  padding: 20px !important;               
+}
+
+a {
+    color: #1976D2; /* Your current link color, a shade of blue */
+    text-decoration: none; /* Removes underline from links */
+}
+a:hover {
+    color: #63A4FF; /* This can be any color you choose for hover */
+    text-decoration: underline; /* Adds underline on hover */
+}
 """
 
 
@@ -751,13 +733,15 @@ We open-source our [FastChat](https://github.com/lm-sys/FastChat) project at Git
 
 ## Acknowledgment
 We thank [SkyPilot](https://github.com/skypilot-org/skypilot) and [Gradio](https://github.com/gradio-app/gradio) team for their system support.
-We also thank [Kaggle](https://www.kaggle.com/), [MBZUAI](https://mbzuai.ac.ae/), [a16z](https://www.a16z.com/), [Together AI](https://www.together.ai/), [Anyscale](https://www.anyscale.com/), [HuggingFace](https://huggingface.co/) for their generous sponsorship. Learn more about partnership [here](https://lmsys.org/donations/).
+We also thank [UC Berkeley SkyLab](https://sky.cs.berkeley.edu/), [Kaggle](https://www.kaggle.com/), [MBZUAI](https://mbzuai.ac.ae/), [a16z](https://www.a16z.com/), [Together AI](https://www.together.ai/), [Hyperbolic](https://hyperbolic.xyz/), [Anyscale](https://www.anyscale.com/), [HuggingFace](https://huggingface.co/) for their generous sponsorship. Learn more about partnership [here](https://lmsys.org/donations/).
 
 <div class="sponsor-image-about">
+    <img src="https://storage.googleapis.com/public-arena-asset/skylab.png" alt="SkyLab">
     <img src="https://storage.googleapis.com/public-arena-asset/kaggle.png" alt="Kaggle">
     <img src="https://storage.googleapis.com/public-arena-asset/mbzuai.jpeg" alt="MBZUAI">
     <img src="https://storage.googleapis.com/public-arena-asset/a16z.jpeg" alt="a16z">
     <img src="https://storage.googleapis.com/public-arena-asset/together.png" alt="Together AI">
+    <img src="https://storage.googleapis.com/public-arena-asset/hyperbolic_logo.png" alt="Hyperbolic">
     <img src="https://storage.googleapis.com/public-arena-asset/anyscale.png" alt="AnyScale">
     <img src="https://storage.googleapis.com/public-arena-asset/huggingface.png" alt="HuggingFace">
 </div>
@@ -1002,7 +986,7 @@ if __name__ == "__main__":
     # Set global variables
     set_global_vars(args.controller_url, args.moderate, args.use_remote_storage)
     models, all_models = get_model_list(
-        args.controller_url, args.register_api_endpoint_file, False
+        args.controller_url, args.register_api_endpoint_file, vision_arena=False
     )
 
     # Set authorization credentials

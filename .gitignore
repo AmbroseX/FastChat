@@ -34,4 +34,9 @@ tests/state_of_the_union.txt
 # Build
 build
 output/*.log
-model_worker/*.log
+
+
+# Image data
+serve_images
+val2014
+vqa_examples

@@ -50,8 +50,15 @@ register_model_info(
         "claude-1",
     ],
     "Claude",
-    "https://www.anthropic.com/index/claude-2",
+    "https://www.anthropic.com/news/claude-3-family",
     "Claude by Anthropic",
+)
+
+register_model_info(
+    ["reka-flash", "reka-flash-online"],
+    "Reka Flash",
+    "https://www.reka.ai/news/reka-flash-efficient-and-capable-multimodal-language-models",
+    "Multimodal model by Reka",
 )
 
 register_model_info(
@@ -144,7 +151,12 @@ register_model_info(
 )
 
 register_model_info(
-    ["gemini-pro", "gemini-pro-dev-api"],
+    [
+        "gemini-pro",
+        "gemini-pro-dev-api",
+        "gemini-1.0-pro-vision",
+        "gemini-1.5-pro-preview-0409",
+    ],
     "Gemini",
     "https://blog.google/technology/ai/google-gemini-pro-imagen-duet-ai-update/",
     "Gemini by Google",
@@ -753,7 +765,7 @@ register_model_info(
 )
 
 register_model_info(
-    ["reka-flash"],
+    ["reka-flash", "reka-flash-20240226"],
     "Reka Flash",
     "https://reka.ai/reka-flash",
     "Multimodal model by Reka",
