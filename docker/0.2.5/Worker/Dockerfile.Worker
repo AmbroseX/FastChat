@@ -75,7 +75,7 @@ RUN pip3 install https://github.com/vllm-project/vllm/releases/download/v0.3.3/v
     pip3 install pydantic==1.10.11 --no-cache-dir && \
     # 删除不必要的文件
     rm -rf /app/wheel_cache && \
-    chmod +x /app/docker/All/start_all.sh && \
+    chmod +x /app/docker/0.2.5/Worker/start_services.sh && \
     python3 ./tests/test_cuda.py
     # pydantic高版本弃用了dumps_kwargs 
 # RUN pip3 install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cu118
@@ -118,8 +118,8 @@ ENV FASTCHAT_CONTROLLER_ADDRESS=192.168.190.79 \
 
 
 # # 暴露需要的端口
-EXPOSE 22001 28000 22002
+EXPOSE 22001 28000
 
 
-ENTRYPOINT ["./docker/All/start_all.sh"]
+ENTRYPOINT ["./docker/0.2.5/Worker/start_services.sh"]
 # sudo docker build  --build-arg BUILD_DATE=$(date +%Y-%m-%d:%H:%M:%S) -t fastchat-worker:0.2 -f ./docker/Worker/Dockerfile.Worker .

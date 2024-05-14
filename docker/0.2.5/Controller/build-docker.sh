@@ -4,7 +4,7 @@ export version=0.2.5
 # echo "wheel_cache/" >> .dockerignore
 
 # 步骤2: 执行Docker构建或其他操作
-sudo docker build -t fastchat-controller:${version} -f ./docker/Controller/Dockerfile.Controller .
+sudo docker build -t fastchat-controller:${version} -f ./docker/${version}/Controller/Dockerfile.Controller .
 
 # 步骤3: 删除 .dockerignore 中的 "wheel_cache/" 行
 # sed -i '/wheel_cache\//d' .dockerignore
