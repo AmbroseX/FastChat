@@ -65,6 +65,7 @@ class VLLMWorker(BaseModelWorker):
             self.init_heart_beat()
 
     async def generate_stream(self, params):
+        logger.info(f"Generating stream with params: {params}")
         self.call_ct += 1
 
         context = params.pop("prompt")

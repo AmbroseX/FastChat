@@ -23,9 +23,9 @@ from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
 import httpx
 
 try:
-    from pydantic.v1 import BaseSettings
-except ImportError:
     from pydantic import BaseSettings
+except ImportError:
+    from pydantic.v1 import BaseSettings
 import shortuuid
 import tiktoken
 import uvicorn
@@ -536,12 +536,12 @@ async def chat_completion_stream_generator(
         chunk = ChatCompletionStreamResponse(
             id=id, choices=[choice_data], model=model_name
         )
-        yield f"data: {chunk.json(exclude_unset=True, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps(chunk.model_dump(exclude_unset=True), ensure_ascii=False)}\n\n"
 
         previous_text = ""
         async for content in generate_completion_stream(gen_params, worker_addr):
             if content["error_code"] != 0:
-                yield f"data: {json.dumps(content, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps(content.model_dump(exclude_unset=True), ensure_ascii=False)}\n\n"
                 yield "data: [DONE]\n\n"
                 return
             decoded_unicode = content["text"].replace("\ufffd", "")
@@ -566,10 +566,10 @@ async def chat_completion_stream_generator(
                 if content.get("finish_reason", None) is not None:
                     finish_stream_events.append(chunk)
                 continue
-            yield f"data: {chunk.json(exclude_unset=True, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps(chunk.model_dump(exclude_unset=True), ensure_ascii=False)}\n\n"
     # There is not "content" field in the last delta message, so exclude_none to exclude field "content".
     for finish_chunk in finish_stream_events:
-        yield f"data: {finish_chunk.json(exclude_none=True, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps(finish_chunk.model_dump(exclude_unset=True, exclude_none=True), ensure_ascii=False)}\n\n"
     yield "data: [DONE]\n\n"
 
 
@@ -683,7 +683,7 @@ async def generate_completion_stream_generator(
             )
             async for content in generate_completion_stream(gen_params, worker_addr):
                 if content["error_code"] != 0:
-                    yield f"data: {json.dumps(content, ensure_ascii=False)}\n\n"
+                    yield f"data: {json.dumps(content.model_dump(exclude_unset=True), ensure_ascii=False)}\n\n"
                     yield "data: [DONE]\n\n"
                     return
                 decoded_unicode = content["text"].replace("\ufffd", "")
@@ -710,10 +710,10 @@ async def generate_completion_stream_generator(
                     if content.get("finish_reason", None) is not None:
                         finish_stream_events.append(chunk)
                     continue
-                yield f"data: {chunk.json(exclude_unset=True, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps(chunk.model_dump(exclude_unset=True), ensure_ascii=False)}\n\n"
     # There is not "content" field in the last delta message, so exclude_none to exclude field "content".
     for finish_chunk in finish_stream_events:
-        yield f"data: {finish_chunk.json(exclude_unset=True, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps(finish_chunk.model_dump(exclude_unset=True, exclude_none=True), ensure_ascii=False)}\n\n"
     yield "data: [DONE]\n\n"
 
 

@@ -1,0 +1,34 @@
+# 使用python轻量级基础镜像
+FROM python:3.10-slim
+WORKDIR /app
+COPY pyproject.toml \
+    .pylintrc /app/
+COPY docker /app/docker/
+COPY fastchat /app/fastchat/
+
+
+# 设置pip源为清华大学镜像源
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+# 得关闭进度条不然会报错
+RUN pip config --user set global.progress_bar off && \
+    pip install --upgrade pip && \
+    pip3 install -e "." && \
+    pip3 install pydantic==1.10.11 -i https://pypi.mirrors.ustc.edu.cn/simple/ --no-cache-dir && \
+    rm -rf /app/wheel_cache && \
+    chmod +x ./docker/0.2.7/Controller/start_controller.sh
+
+# 设置环境变量
+ENV OPENBLAS_NUM_THREADS=1 \
+    FASTCHAT_LOG_LEVEL=debug \
+    FASTCHAT_CONTROLLER_ADDRESS=0.0.0.0 \
+    FASTCHAT_CONTROLLER_PORT=22001 \
+    FASTCHAT_OPENAI_API_PORT=28000 \
+    FASTCHAT_API_KEYS=123456,12345678,none
+
+# 使用supervisord作为容器的启动命令
+
+# 暴露必要的端口
+EXPOSE 22001 28000
+
+ENTRYPOINT ["./docker/0.2.7/Controller/start_controller.sh"]
+# sudo docker build -t fastchat-controller:0.2.7 -f ./docker/Controller/Dockerfile.Controller .
