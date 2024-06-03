@@ -2,7 +2,7 @@
 # vllm方式启动
 echo "load Model: chatglm3-6b" > ./logs/worker_chatglm3-6b.log
 nohup env CUDA_VISIBLE_DEVICES=5 python3  ./fastchat/serve/vllm_worker.py \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.80.33 --port 22005  \
     --worker-address http://192.168.80.33:22005 \
     --model-path /platform_tech/models/chatglm3-6b \
@@ -17,7 +17,7 @@ nohup env CUDA_VISIBLE_DEVICES=5 python3  ./fastchat/serve/vllm_worker.py \
 # # vllm方式启动
 # echo "load Model: chatglm3-6b-32k" > ./logs/worker_chatglm3-6b-32k.log
 # nohup env CUDA_VISIBLE_DEVICES=5 python3  ./fastchat/serve/vllm_worker.py \
-#     --controller-address http://192.168.80.34:22001 \
+#     --controller-address http://192.168.72.34:22001 \
 #     --host 192.168.80.33 --port 22006 \
 #     --worker-address http://192.168.80.33:22006 \
 #     --model-path /platform_tech/models/chatglm3-6b-32k \

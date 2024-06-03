@@ -29,7 +29,7 @@ echo "所有指定进程已处理完毕。"
 
 echo "load Model: CodeLlama-7b-Python-hf" > ./logs/worker_CodeLlama-7b-Python-hf.log
 nohup env CUDA_VISIBLE_DEVICES=0 python3  ./fastchat/serve/vllm_worker.py \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.80.33 --port 22014  \
     --worker-address http://192.168.80.33:22014 \
     --model-path /platform_tech/models/CodeLlama-7b-Python-hf \
@@ -46,7 +46,7 @@ nohup env CUDA_VISIBLE_DEVICES=0 python3  ./fastchat/serve/vllm_worker.py \
 
 echo "load Model: CodeLlama-7b-Instruct-hf" > ./logs/worker_CodeLlama-7b-Instruct-hf.log
 nohup env CUDA_VISIBLE_DEVICES=1 python3  ./fastchat/serve/vllm_worker.py \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.80.33 --port 22015  \
     --worker-address http://192.168.80.33:22015 \
     --model-path /platform_tech/models/CodeLlama-7b-Instruct-hf \

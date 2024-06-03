@@ -7,7 +7,7 @@ export NUM_GPUS=1
 
 echo "load Model: worker_79_demo" > ./logs/worker_79_demo.log
 nohup env CUDA_VISIBLE_DEVICES=${NODE_RANK} python3 -m fastchat.serve.vllm_worker \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.190.79 --port 22079  \
     --worker-address http://192.168.190.79:22079 \
     --model-path /platform_tech/xiongrongkang/checkpoint/xinwen_202404021_qwen1.5_4b/checkpoint-850 \

@@ -2,7 +2,7 @@
 ./scripts/stop_worker.sh
 
 # Yi-34B-200K
-# nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3 ./fastchat/serve/model_worker.py --host 192.168.80.34 --port 22003 --worker http://192.168.80.34:22003 --controller-address http://192.168.80.34:22001   --max-gpu-memory '80Gib' > ./logs/worker.log 2>&1 &
+# nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3 ./fastchat/serve/model_worker.py --host 192.168.72.34 --port 22003 --worker http://192.168.72.34:22003 --controller-address http://192.168.72.34:22001   --max-gpu-memory '80Gib' > ./logs/worker.log 2>&1 &
 
 # # vllm方式启动
 # # 1个任务可以跑35tokens/s
@@ -36,7 +36,7 @@
 
 # # vllm方式启动
 nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3 -m fastchat.serve.vllm_worker \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.190.73 --port 22006  \
     --worker-address http://192.168.190.73:22006 \
     --model-path /platform_tech/models/Yi-34B-Chat \

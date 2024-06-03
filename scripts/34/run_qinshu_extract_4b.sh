@@ -5,9 +5,9 @@ export NUM_GPUS=1
 
 echo "load Model: worker_34_qinshu_extract" > ./logs/worker_34_qinshu_extract.log
 nohup env CUDA_VISIBLE_DEVICES=${NODE_RANK} python3 -m fastchat.serve.vllm_worker \
-    --controller-address http://192.168.80.34:22001 \
-    --host 192.168.80.34 --port 22081  \
-    --worker-address http://192.168.80.34:22081 \
+    --controller-address http://192.168.72.34:22001 \
+    --host 192.168.72.34 --port 22081  \
+    --worker-address http://192.168.72.34:22081 \
     --model-path /platform_tech/xiongrongkang/checkpoint/qinshu_extract_all_v4_qwen1_5_4b \
     --model-name "qinshu_extract" \
     --num-gpus ${NUM_GPUS} \

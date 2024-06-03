@@ -2,7 +2,7 @@
 # internlm2-chat-7b
 echo "load Model: internlm2-chat-7b" > ./logs/worker_79_internlm2-chat-7b.log
 nohup env CUDA_VISIBLE_DEVICES=0 python3 ./fastchat/serve/model_worker.py \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.190.79 --port 22011 \
     --worker-address http://192.168.190.79:22011 \
     --model-path /platform_tech/models/internlm2-chat-7b \
@@ -13,7 +13,7 @@ nohup env CUDA_VISIBLE_DEVICES=0 python3 ./fastchat/serve/model_worker.py \
 # internlm2-chat-20b
 echo "load Model: internlm2-chat-20b" > ./logs/worker_79_internlm2-chat-20b.log
 nohup env CUDA_VISIBLE_DEVICES=4,5 python3 ./fastchat/serve/model_worker.py \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.190.79 --port 22012 \
     --worker-address http://192.168.190.79:22012 \
     --model-path /platform_tech/models/internlm2-chat-20b \
@@ -24,7 +24,7 @@ nohup env CUDA_VISIBLE_DEVICES=4,5 python3 ./fastchat/serve/model_worker.py \
 # # internlm2-chat-20b
 # # vllm方式启动
 # nohup env CUDA_VISIBLE_DEVICES=5 python3  ./fastchat/serve/vllm_worker.py \
-#     --controller-address http://192.168.80.34:22001 \
+#     --controller-address http://192.168.72.34:22001 \
 #     --host 192.168.80.33 --port 22008  \
 #     --worker-address http://192.168.80.33:22008 \
 #     --model-path /platform_tech/xiongrongkang/models/internlm2-chat-20b \

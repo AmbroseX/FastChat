@@ -32,7 +32,7 @@ async def fetch_remote(url, pload=None, name=None):
     return output
 
 async def test_fetch():
-    controller_address = "192.168.80.34:22001"
+    controller_address = "192.168.72.34:22001"
     ret = await fetch_remote(controller_address + "/refresh_all_workers")
     print(f"list_models:{ret}")
     models = await fetch_remote(controller_address + "/list_models", None, "models")

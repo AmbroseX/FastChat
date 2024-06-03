@@ -46,13 +46,13 @@
 
 
 # Yi-34B-200K
-# nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3 ./fastchat/serve/model_worker.py --host 192.168.80.34 --port 22003 --worker http://192.168.80.34:22003 --controller-address http://192.168.80.34:22001   --max-gpu-memory '80Gib' > ./logs/worker.log 2>&1 &
+# nohup env CUDA_VISIBLE_DEVICES=4,5,6,7 python3 ./fastchat/serve/model_worker.py --host 192.168.72.34 --port 22003 --worker http://192.168.72.34:22003 --controller-address http://192.168.72.34:22001   --max-gpu-memory '80Gib' > ./logs/worker.log 2>&1 &
 
 # # # vllm方式启动
 # nohup env CUDA_VISIBLE_DEVICES=6,7 python3  ./fastchat/serve/vllm_worker.py \
-#     --controller-address http://192.168.80.34:22001 \
-#     --host 192.168.80.34 --port 22005  \
-#     --worker-address http://192.168.80.34:22005 \
+#     --controller-address http://192.168.72.34:22001 \
+#     --host 192.168.72.34 --port 22005  \
+#     --worker-address http://192.168.72.34:22005 \
 #     --model-path /platform_tech/models/Yi-34B-200K \
 #     --model-name "Yi-34B-200K" \
 #     --num-gpus 2 \

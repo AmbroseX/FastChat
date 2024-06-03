@@ -2,7 +2,7 @@
 # vllm方式启动
 # echo "load Model: Baichuan2-7B-Chat" > ./logs/worker_Baichuan2-7B-Chat.log
 # nohup env CUDA_VISIBLE_DEVICES=3 python3  ./fastchat/serve/vllm_worker.py \
-#     --controller-address http://192.168.80.34:22001 \
+#     --controller-address http://192.168.72.34:22001 \
 #     --host 192.168.80.33 --port 22004  \
 #     --worker-address http://192.168.80.33:22004 \
 #     --model-path /platform_tech/models/Baichuan2-7B-Chat \
@@ -20,7 +20,7 @@
 # vllm方式启动
 echo "load Model: Baichuan2-13B-Chat" > ./logs/worker_Baichuan2-13B-Chat.log
 nohup env CUDA_VISIBLE_DEVICES=3 python3  ./fastchat/serve/vllm_worker.py \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.80.33 --port 22007  \
     --worker-address http://192.168.80.33:22007 \
     --model-path /platform_tech/models/Baichuan2-13B-Chat \

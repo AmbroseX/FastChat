@@ -25,7 +25,7 @@ done
 
 echo "所有指定进程已处理完毕。"
 env CUDA_VISIBLE_DEVICES=4 python3 ./fastchat/serve/vllm_worker.py \
-    --controller-address http://192.168.80.34:22001 \
+    --controller-address http://192.168.72.34:22001 \
     --host 192.168.80.33 --port 22004  \
     --worker-address http://192.168.80.33:22004 \
     --model-path /platform_tech/models/Qwen-14B-Chat  \
@@ -37,7 +37,7 @@ env CUDA_VISIBLE_DEVICES=4 python3 ./fastchat/serve/vllm_worker.py \
     > ./logs/worker_Qwen_14B.log 2>&1 &
 
 # nohup env CUDA_VISIBLE_DEVICES=4 python3 ./fastchat/serve/vllm_worker.py \
-#     --controller-address http://192.168.80.34:22001 \
+#     --controller-address http://192.168.72.34:22001 \
 #     --host 192.168.80.33 --port 22004  \
 #     --worker-address http://192.168.80.33:22004 \
 #     --model-path /platform_tech/models/Qwen-14B-Chat  \
@@ -50,7 +50,7 @@ env CUDA_VISIBLE_DEVICES=4 python3 ./fastchat/serve/vllm_worker.py \
 
 # # # vllm方式启动
 # nohup env CUDA_VISIBLE_DEVICES=7 python3  ./fastchat/serve/vllm_worker.py \
-#     --controller-address http://192.168.80.34:22001 \
+#     --controller-address http://192.168.72.34:22001 \
 #     --host 192.168.190.73 --port 22004  \
 #     --worker-address http://192.168.190.73:22004 \
 #     --model-path /platform_tech/models/Qwen-14B-Chat \

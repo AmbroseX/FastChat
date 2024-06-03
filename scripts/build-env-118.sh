@@ -23,3 +23,4 @@ pip install "transformers==4.39.1" tiktoken einops transformers_stream_generator
 pip install accelerate autoawq
 # pydantic高版本弃用了dumps_kwargs
 pip install fastapi uvicorn httpx shortuuid pydantic==1.10.11
+pip install -e "."
