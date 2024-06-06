@@ -388,25 +388,46 @@ def get_arena_table(arena_df, model_table_df, arena_subset_df=None):
 
 key_to_category_name = {
     "full": "Overall",
+    "dedup": "De-duplicate Top Redundant Queries (soon to be default)",
     "coding": "Coding",
+    "hard_6": "Hard Prompts (Overall)",
+    "hard_english_6": "Hard Prompts (English)",
     "long_user": "Longer Query",
     "english": "English",
     "chinese": "Chinese",
     "french": "French",
+    "german": "German",
+    "spanish": "Spanish",
+    "russian": "Russian",
+    "japanese": "Japanese",
     "no_tie": "Exclude Ties",
     "no_short": "Exclude Short Query (< 5 tokens)",
     "no_refusal": "Exclude Refusal",
+    "overall_limit_5_user_vote": "overall_limit_5_user_vote",
+    "full_old": "Overall (Deprecated)",
 }
 cat_name_to_explanation = {
     "Overall": "Overall Questions",
+    "De-duplicate Top Redundant Queries (soon to be default)": "De-duplicate top redundant queries (top 0.1%). See details in [blog post](https://lmsys.org/blog/2024-05-17-category-hard/#note-enhancing-quality-through-de-duplication).",
     "Coding": "Coding: whether conversation contains code snippets",
+    "Hard Prompts (Overall)": "Hard Prompts (Overall): details in [blog post](https://lmsys.org/blog/2024-05-17-category-hard/)",
+    "Hard Prompts (English)": "Hard Prompts (English), note: the delta is to English Category. details in [blog post](https://lmsys.org/blog/2024-05-17-category-hard/)",
     "Longer Query": "Longer Query (>= 500 tokens)",
     "English": "English Prompts",
     "Chinese": "Chinese Prompts",
     "French": "French Prompts",
+    "German": "German Prompts",
+    "Spanish": "Spanish Prompts",
+    "Russian": "Russian Prompts",
+    "Japanese": "Japanese Prompts",
     "Exclude Ties": "Exclude Ties and Bothbad",
     "Exclude Short Query (< 5 tokens)": "Exclude Short User Query (< 5 tokens)",
     "Exclude Refusal": 'Exclude model responses with refusal (e.g., "I cannot answer")',
+    "overall_limit_5_user_vote": "overall_limit_5_user_vote",
+    "Overall (Deprecated)": "Overall without De-duplicating Top Redundant Queries (top 0.1%). See details in [blog post](https://lmsys.org/blog/2024-05-17-category-hard/#note-enhancing-quality-through-de-duplication).",
+}
+cat_name_to_baseline = {
+    "Hard Prompts (English)": "English",
 }
 
 
@@ -520,7 +541,7 @@ def build_leaderboard_tab(
                 )
 
                 gr.Markdown(
-                    f"""Note: in each category, we exclude models with fewer than 500 votes as their confidence intervals can be large.""",
+                    f"""Note: in each category, we exclude models with fewer than 300 votes as their confidence intervals can be large.""",
                     elem_id="leaderboard_markdown",
                 )
 
@@ -633,9 +654,11 @@ def build_leaderboard_tab(
 
     def update_leaderboard_and_plots(category):
         arena_subset_df = arena_dfs[category]
-        arena_subset_df = arena_subset_df[arena_subset_df["num_battles"] > 500]
+        arena_subset_df = arena_subset_df[arena_subset_df["num_battles"] > 300]
         elo_subset_results = category_elo_results[category]
-        arena_df = arena_dfs["Overall"]
+
+        baseline_category = cat_name_to_baseline.get(category, "Overall")
+        arena_df = arena_dfs[baseline_category]
         arena_values = get_arena_table(
             arena_df,
             model_table_df,
