@@ -1,4 +1,4 @@
-export version=0.2.7
+export version=0.2.8
 sudo docker stop fastchat-controller && sudo docker rm fastchat-controller
 sudo docker run -d --security-opt seccomp:unconfined -e OPENBLAS_NUM_THREADS=1 \
     --cpus="10" --memory="10g" -p 22001:22001 -p 28000:28000 \
