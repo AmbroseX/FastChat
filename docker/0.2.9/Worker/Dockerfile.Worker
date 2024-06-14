@@ -1,0 +1,81 @@
+# 使用PyTorch官方CUDA镜像作为基础镜像,是3.10.14的
+FROM pytorch/pytorch:2.3.0-cuda12.1-cudnn8-devel
+ARG BUILD_DATE=unknown
+RUN echo "Build date: ${BUILD_DATE}"
+RUN python3 --version
+WORKDIR /app
+COPY pyproject.toml \
+    .pylintrc /app/
+COPY docker /app/docker/
+COPY fastchat /app/fastchat/
+COPY tests /app/tests/
+
+
+# 设置pip源为清华大学镜像源
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+# # 得关闭进度条不然会报错
+# 合并RUN指令
+RUN pip config --user set global.progress_bar off && \
+    pip install --upgrade pip && \
+    pip3 install -e "." && \
+    pip3 install transformers==4.40.1 einops transformers_stream_generator==0.0.5 accelerate peft sentencepiece protobuf autoawq --no-cache-dir && \
+    pip3 install "fastrlock>=0.5" --no-cache-dir && \
+    pip3 install vllm==0.4.2 && \
+    rm -rf /app/wheel_cache
+# 得在线装,有很多依赖,否则全部得一个一个找下载到本地提前安装
+# https://github.com/vllm-project/vllm/releases
+# 自动下载xformers-0.0.26.post1
+# vllm 0.4.1 , torch 2.2.1
+# vllm 0.4.2 , torch 2.3.0
+RUN chmod +x /app/docker/0.2.8/Worker/start_worker.sh && \
+    python3 ./tests/test_cuda.py
+    # pydantic高版本弃用了dumps_kwargs 
+
+# 设置环境变量
+# Controller地址
+ENV FASTCHAT_CONTROLLER_ADDRESS='0.0.0.0' \
+    TZ=Asia/Shanghai \
+    OPENBLAS_NUM_THREADS=1 \
+    NVIDIA_DRIVER_CAPABILITIES="compute,utility" \
+    VLLM_NCCL_SO_PATH=/root/.config/vllm/nccl/cu12/libnccl.so.2.18.1 \
+    # Controller端口
+    FASTCHAT_CONTROLLER_PORT=22001 \
+    # OpenAI API端口
+    FASTCHAT_OPENAI_API_PORT=28000 \
+    # 日志级别
+    LOG_LEVEL='DEBUG' \
+    # 日志级别
+    FASTCHAT_LOG_LEVEL=debug \
+    # Worker地址
+    FASTCHAT_WORKER_ADDRESS='127.0.0.1' \
+    # Worker端口
+    FASTCHAT_WORKER_PORT=22002 \
+    # Worker的CUDA设备
+    FASTCHAT_DOCKER_CUDA_DEVICE=0,1 \
+    # Worker的GPU数量
+    NUM_GPUS=2 \
+    # Worker的推理方式类型
+    USE_WORKER=VLLM_WORKER \
+    # Worker的模型名称
+    FASTCHAT_WORKER_MODEL_NAMES=Qwen-1_8B-Chat \
+    # Worker的模型路径
+    FASTCHAT_WORKER_MODEL_PATH=/app/models/ \
+    FASTCHAT_CONV_TEMPLATE= \
+    # 现存占用百分比
+    GPU_MEMORY_UTILIZATION=0.85 \
+    # 最大模型长度
+    MAX_MODEL_LEN=1024 \
+    # 限制工作线程
+    LIMIT_WORKER=5 \
+    RAY_USE_MULTIPROCESSING_CPU_COUNT= \
+    RAY_DISABLE_DOCKER_CPU_WARNING=1 \
+    RAY_memory_monitor_refresh_ms=0 
+
+
+# # 暴露需要的端口
+EXPOSE 28000
+
+
+# ENTRYPOINT ["./docker/0.2.7/All/start_all.sh"]
+CMD ["./docker/0.2.8/Worker/start_worker.sh"]
+# sudo docker build  --build-arg BUILD_DATE=$(date +%Y-%m-%d:%H:%M:%S) -t fastchat-worker:0.2 -f ./docker/Worker/Dockerfile.Worker .
