@@ -186,8 +186,27 @@ async def check_length(request, prompt, max_tokens, worker_addr):
 
     return length, None
 
+def set_default_requests(request:Request)->Request:
+    # TODO 检查 null
+    # Check all params
+    if request.max_tokens is None:
+        request.max_tokens = 1024
+    if request.n is  None:
+        request.n = 1
+    if request.temperature is None:
+        request.temperature = 0.7
+    if request.top_p is None:
+        request.top_p = 1.0
+    if request.presence_penalty is None:
+        request.presence_penalty = 0.0
+    if request.frequency_penalty is None:
+        request.frequency_penalty = 0.0
+    if request.top_k is None:
+        request.top_k = -1
+    return request
 
 def check_requests(request) -> Optional[JSONResponse]:
+    # TODO 检查 null
     # Check all params
     if request.max_tokens is not None and request.max_tokens <= 0:
         return create_error_response(
@@ -209,6 +228,7 @@ def check_requests(request) -> Optional[JSONResponse]:
             ErrorCode.PARAM_OUT_OF_RANGE,
             f"{request.temperature} is greater than the maximum of 2 - 'temperature'",
         )
+    # TODO 检测 top_p 不是null
     if request.top_p is not None and request.top_p < 0:
         return create_error_response(
             ErrorCode.PARAM_OUT_OF_RANGE,
@@ -436,20 +456,23 @@ async def show_available_models():
 
 @app.post("/v1/chat/completions", dependencies=[Depends(check_api_key)])
 async def create_chat_completion(raw_request:Request, request: ChatCompletionRequest):
+    """
+    传进来null会变成 None
+    """
     """Creates a completion for the chat message"""
     worker_addr = await get_worker_address(request.model)
     x_trace_id = await get_header_item(raw_request, 'x_trace_id')
     logger.info(f"POST /v1/chat/completions x_trace_id: {x_trace_id}, "
                 f"worker request: {request}."
                 )
-    
     error_check_ret = await check_model(request)
     if error_check_ret is not None:
         return error_check_ret
     error_check_ret = check_requests(request)
     if error_check_ret is not None:
         return error_check_ret
-
+    request = set_default_requests(request)
+    
     gen_params = await get_gen_params(
         request.model,
         worker_addr,
@@ -584,7 +607,9 @@ async def create_completion(raw_request:Request, request: CompletionRequest):
     error_check_ret = check_requests(request)
     if error_check_ret is not None:
         return error_check_ret
-
+    # set default para
+    request = set_default_requests(request)
+    
     request.prompt = process_input(request.model, request.prompt)
 
     worker_addr = await get_worker_address(request.model)
@@ -807,6 +832,7 @@ async def count_tokens(request: APITokenCheckRequest):
     """
     Checks the token count for each message in your list
     This is not part of the OpenAI API spec.
+    这个是for 循环调用count_token，不是OpenAI API spec的一部分。
     """
     checkedList = []
     for item in request.prompts:
@@ -817,7 +843,13 @@ async def count_tokens(request: APITokenCheckRequest):
             {"prompt": item.prompt, "model": item.model},
             "context_length",
         )
-
+        
+        max_model_len = await fetch_remote(
+            worker_addr + "/model_details",
+            {"prompt": item.prompt, "model": item.model},
+            "max_model_len",
+        )
+        
         token_num = await fetch_remote(
             worker_addr + "/count_token",
             {"prompt": item.prompt, "model": item.model},
@@ -825,7 +857,9 @@ async def count_tokens(request: APITokenCheckRequest):
         )
 
         can_fit = True
-        if token_num + item.max_tokens > context_len:
+        # if token_num + item.max_tokens > context_len:
+        #     can_fit = False
+        if token_num + item.max_tokens > max_model_len:
             can_fit = False
 
         checkedList.append(
@@ -852,7 +886,8 @@ async def create_chat_completion(raw_request:Request, request: APIChatCompletion
     error_check_ret = check_requests(request)
     if error_check_ret is not None:
         return error_check_ret
-
+    # set default
+    request = set_default_requests(request)
     worker_addr = await get_worker_address(request.model)
 
     gen_params = await get_gen_params(
@@ -925,10 +960,11 @@ def create_openai_api_server():
     parser = argparse.ArgumentParser(
         description="FastChat ChatGPT-Compatible RESTful API server."
     )
-    parser.add_argument("--host", type=str, default="localhost", help="host name")
+    # parser.add_argument("--host", type=str, default="localhost", help="host name")
+    parser.add_argument("--host", type=str, default="192.168.190.79", help="host name")
     parser.add_argument("--port", type=int, default=8000, help="port number")
     parser.add_argument(
-        "--controller-address", type=str, default="http://localhost:21001"
+        "--controller-address", type=str, default="http://192.168.190.79:21001"
     )
     parser.add_argument(
         "--allow-credentials", action="store_true", help="allow credentials"
