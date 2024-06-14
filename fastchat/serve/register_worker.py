@@ -18,11 +18,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     url = args.controller_address + "/register_worker"
+    print(f'register_worker: url:{url}')
+    
     data = {
         "worker_name": args.worker_name,
         "check_heart_beat": args.check_heart_beat,
         "worker_status": None,
         "multimodal": args.multimodal,
     }
+    print(f'register_worker: data:{data}')
     r = requests.post(url, json=data)
     assert r.status_code == 200
+    print(f"register success:{r.json()}",)
