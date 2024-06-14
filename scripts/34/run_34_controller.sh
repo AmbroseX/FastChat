@@ -5,7 +5,7 @@
 # 启动controller
 nohup python3 -m fastchat.serve.controller \
     --host 0.0.0.0 --port 22001 \
-    > ./logs/controller.log 2>&1 &
+    > /platform_tech/logs/controller.log 2>&1 &
 
 
 # 启动openai_api_server
@@ -14,7 +14,7 @@ nohup python3 -m fastchat.serve.openai_api_server \
     --controller-address http://192.168.72.34:22001  \
     --api-keys "123456" \
     --log-level debug \
-    > ./logs/openai_api_server.log 2>&1 &
+    > /platform_tech/logs/openai_api_server.log 2>&1 &
 
 
 # nohup python3 -m fastchat.serve.gradio_web_server \
