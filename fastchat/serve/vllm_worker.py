@@ -60,7 +60,8 @@ class VLLMWorker(BaseModelWorker):
         if hasattr(self.tokenizer, "tokenizer"):
             self.tokenizer = llm_engine.engine.tokenizer.tokenizer
         self.context_len = get_context_length(llm_engine.engine.model_config.hf_config)
-
+        # add max model len
+        self.max_model_len = engine.engine.model_config.max_model_len
         if not no_register:
             self.init_heart_beat()
 
@@ -245,7 +246,9 @@ async def api_get_conv(request: Request):
 
 @app.post("/model_details")
 async def api_model_details(request: Request):
-    return {"context_length": worker.context_len}
+    return {"context_length": worker.context_len,
+            "max_model_len": worker.max_model_len
+            }
 
 
 if __name__ == "__main__":
