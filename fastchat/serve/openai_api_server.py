@@ -836,11 +836,28 @@ async def batches_tokens(request: APIBatchTokenCheckRequest):
     This is not part of the OpenAI API spec.
     这个是for 循环调用count_token，不是OpenAI API spec的一部分。
     """
+    # Parameter checks
+    if request.max_tokens is None or request.max_tokens <= 0:
+        raise HTTPException(status_code=400, detail="Invalid max_tokens value")
+    
+    if request.model is None or request.model == "":
+        raise HTTPException(status_code=400, detail="Invalid model value")
+    
+    if request.texts is None or not isinstance(request.texts, list) or len(request.texts) == 0:
+        raise HTTPException(status_code=400, detail="Invalid texts value")
+    
+    if request.sep is not None and not isinstance(request.sep, str):
+        raise HTTPException(status_code=400, detail="Invalid sep value")
     
     max_tokens = request.max_tokens
     model = request.model
     texts = request.texts
     sep = request.sep
+    
+    # check sep
+    if sep is None:
+        sep = '\n'
+    
     worker_addr = await get_worker_address(model)
     context_len = await fetch_remote(
             worker_addr + "/model_details",
