@@ -38,6 +38,7 @@ class SeparatorStyle(IntEnum):
     YUAN2 = auto()
     GEMMA = auto()
     CLLM = auto()
+    AIREAD = auto()
     DEFAULT = auto()
 
 
@@ -191,11 +192,23 @@ class Conversation:
         elif self.sep_style == SeparatorStyle.CHATML:
             ret = "" if system_prompt == "" else system_prompt + self.sep + "\n"
             for role, message in self.messages:
+                print(f"message = {message}")
                 if message:
                     if type(message) is tuple:
                         message, images = message
                         message = IMAGE_PLACEHOLDER_STR * len(images) + message
                     ret += role + "\n" + message + self.sep + "\n"
+                else:
+                    ret += role + "\n"
+            return ret
+        elif self.sep_style == SeparatorStyle.AIREAD:   # AI辅读场景新增
+            ret = "" if system_prompt == "" else system_prompt + self.sep + "\n"
+            for role, message in self.messages:
+                if message:
+                    if type(message) is tuple:
+                        message, images = message
+                        message = IMAGE_PLACEHOLDER_STR * len(images) + message
+                    ret += role + "\n" + message + "<|endoftext|><|assistant|>" + self.sep + "\n"
                 else:
                     ret += role + "\n"
             return ret
@@ -1677,6 +1690,29 @@ register_conv_template(
     )
 )
 
+# Qwen-chat default template
+# source: https://huggingface.co/Qwen/Qwen-7B-Chat/blob/main/qwen_generation_utils.py#L130
+
+# AI辅读场景新增
+ai_reading = '<|prefix_begin|>你是由IDEA研究院的Readpaper团队开发的名为\\\"Eureka\\\"的学术文献阅读助手。您能够为用户在阅读学术论文时提出的各种问题提供精确的答案。你的回答主要基于问题相关的文档与用户阅读时所选内容，用户选择的内容可能为空。<|prefix_end|><|prompter|>'
+ai_reading_end = '<|endoftext|><|assistant|>'
+register_conv_template(
+    Conversation(
+        name="qwen-14-chat-AI-reading",
+        system_template="<|im_start|>system\n{system_message}",
+        system_message="You are a helpful assistant.",
+        roles=("<|im_start|>user" + "\n" + ai_reading, "<|im_start|>assistant"),
+        sep_style=SeparatorStyle.AIREAD,
+        sep="<|im_end|>",
+        stop_token_ids=[
+            151643,
+            151644,
+            151645,
+        ],  # "<|endoftext|>", "<|im_start|>", "<|im_end|>"     
+        stop_str="<|endoftext|>",
+    )
+)
+
 # source: https://huggingface.co/01-ai/Yi-34B-Chat/blob/main/tokenizer_config.json#L60
 register_conv_template(
     Conversation(
@@ -2076,6 +2112,11 @@ register_conv_template(
 
 if __name__ == "__main__":
     # from fastchat.conversation import get_conv_template
+    print("-- qwen-14-chat-AI-reading --")
+    conv = get_conv_template("qwen-14-chat-AI-reading")
+    conv.append_message(conv.roles[0], "Hello!")
+    # conv.append_message(conv.roles[1], "Hi!")
+    print(conv.get_prompt())
 
     print("-- Vicuna template --")
     conv = get_conv_template("vicuna_v1.1")
