@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import threading
 import time
 from typing import List
@@ -54,9 +55,9 @@ class BaseModelWorker:
         self.semaphore = None
 
         self.heart_beat_thread = None
-
+        worker_date = datetime.now().strftime("%Y%m%d")
         if logger is None:
-            logger = build_logger("model_worker", f"./model_logs/model_worker_{self.worker_id}.log")
+            logger = build_logger("model_worker", f"./model_logs/model_worker_{worker_date}_{self.worker_id}.log")
         if worker is None:
             worker = self
 

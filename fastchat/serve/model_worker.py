@@ -8,7 +8,7 @@ import json
 import os
 from typing import List, Optional
 import uuid
-
+from datetime import datetime
 import torch
 import torch.nn.functional as F
 from transformers import set_seed
@@ -32,7 +32,8 @@ from fastchat.utils import (
 )
 
 worker_id = str(uuid.uuid4())[:8]
-logger = build_logger("model_worker", f"./model_logs/model_worker_{worker_id}.log")
+worker_date = datetime.now().strftime("%Y%m%d")
+logger = build_logger("model_worker", f"./model_logs/model_worker_{worker_date}_{worker_id}.log")
 
 
 class ModelWorker(BaseModelWorker):

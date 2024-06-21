@@ -27,7 +27,7 @@ RUN pip config --user set global.progress_bar off && \
 # 自动下载xformers-0.0.26.post1
 # vllm 0.4.1 , torch 2.2.1
 # vllm 0.4.2 , torch 2.3.0
-RUN chmod +x /app/docker/0.2.8/Worker/start_worker.sh && \
+RUN chmod +x /app/docker/0.2.9/Worker/start_worker.sh && \
     python3 ./tests/test_cuda.py
     # pydantic高版本弃用了dumps_kwargs 
 
@@ -77,5 +77,5 @@ EXPOSE 28000
 
 
 # ENTRYPOINT ["./docker/0.2.7/All/start_all.sh"]
-CMD ["./docker/0.2.8/Worker/start_worker.sh"]
+CMD ["./docker/0.2.9/Worker/start_worker.sh"]
 # sudo docker build  --build-arg BUILD_DATE=$(date +%Y-%m-%d:%H:%M:%S) -t fastchat-worker:0.2 -f ./docker/Worker/Dockerfile.Worker .
