@@ -149,6 +149,23 @@ class BaseModelWorker:
             "queue_length": self.get_queue_length(),
         }
 
+    # TODO batch count token
+    def batch_count_token(self, params):
+        texts = params["texts"]
+        try:
+            inputs = self.tokenizer.batch_encode_plus(texts, add_special_tokens=True, return_attention_mask=False)
+            input_ids = inputs["input_ids"]
+            num_lens = [len(x) for x in input_ids]
+        except TypeError as e:
+            print(f"Error: {e}")
+            num_lens = [0] * len(texts)  # 如果出现错误，返回每个文本的token数为0
+        
+        ret = {
+            "counts": num_lens,
+            "error_code": 0
+        }
+        return ret
+    
     def count_token(self, params):
         prompt = params["prompt"]
 

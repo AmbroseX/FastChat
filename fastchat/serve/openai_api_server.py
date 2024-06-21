@@ -59,6 +59,9 @@ from fastchat.protocol.openai_api_protocol import (
     UsageInfo,
 )
 from fastchat.protocol.api_protocol import (
+    APIBatchTokenCheckRequest,
+    APIBatchTokenCheckResponse,
+    APIBatchTokenCheckkResponseItem,
     APIChatCompletionRequest,
     APITokenCheckRequest,
     APITokenCheckResponse,
@@ -826,6 +829,73 @@ async def get_embedding(payload: Dict[str, Any]):
 
 ### GENERAL API - NOT OPENAI COMPATIBLE ###
 
+@app.post("/api/v1/batch_token_check")
+async def batches_tokens(request: APIBatchTokenCheckRequest):
+    """
+    Checks the token count for each message in your list
+    This is not part of the OpenAI API spec.
+    这个是for 循环调用count_token，不是OpenAI API spec的一部分。
+    """
+    
+    max_tokens = request.max_tokens
+    model = request.model
+    texts = request.texts
+    sep = request.sep
+    worker_addr = await get_worker_address(model)
+    context_len = await fetch_remote(
+            worker_addr + "/model_details",
+            {"model": model},
+            "context_length",
+        )
+    max_model_len = await fetch_remote(
+            worker_addr + "/model_details",
+            {"model": model},
+            "max_model_len",
+        )
+    
+    token_nums = await fetch_remote(
+            worker_addr + "/batch_count_token",
+            {"texts": texts, 
+             "model": model},
+            "counts",
+        )
+    sep_token_num =  await fetch_remote(
+            worker_addr + "/count_token",
+            {"prompt": sep, "model": model},
+            "count",
+        )
+    total_input_tokens = 0
+    total_tokens = 0
+    
+    checkedList = []
+    max_num_id = 0
+    
+    for i in range(len(token_nums)):
+        token_num = token_nums[i]
+        can_fit = True
+        total_tokens = total_tokens + token_num
+        if i>=1:
+            total_tokens += sep_token_num
+        if total_tokens + max_tokens < max_model_len:
+            total_input_tokens = total_tokens
+            max_num_id = i
+            can_fit = False
+
+        checkedList.append(
+            APIBatchTokenCheckkResponseItem(
+                tokenCount=token_num
+            )
+        )
+
+    return APIBatchTokenCheckResponse(prompts=checkedList,
+                                      max_model_len=max_model_len,
+                                      max_num_id = max_num_id,
+                                      total_input_tokens = total_input_tokens,
+                                      sep_tokens = sep_token_num
+                                      )
+    
+    
+
 
 @app.post("/api/v1/token_check")
 async def count_tokens(request: APITokenCheckRequest):
@@ -962,9 +1032,9 @@ def create_openai_api_server():
     )
     # parser.add_argument("--host", type=str, default="localhost", help="host name")
     parser.add_argument("--host", type=str, default="192.168.190.79", help="host name")
-    parser.add_argument("--port", type=int, default=8000, help="port number")
+    parser.add_argument("--port", type=int, default=21012, help="port number")
     parser.add_argument(
-        "--controller-address", type=str, default="http://192.168.190.79:21001"
+        "--controller-address", type=str, default="http://192.168.190.79:21011"
     )
     parser.add_argument(
         "--allow-credentials", action="store_true", help="allow credentials"

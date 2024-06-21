@@ -364,8 +364,8 @@ async def worker_api_get_status(request: Request):
 
 def create_controller():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host", type=str, default="localhost")
-    parser.add_argument("--port", type=int, default=21001)
+    parser.add_argument("--host", type=str, default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=21011)
     parser.add_argument(
         "--dispatch-method",
         type=str,

@@ -103,6 +103,25 @@ class ChatCompletionStreamResponse(BaseModel):
     choices: List[ChatCompletionResponseStreamChoice]
 
 
+class APIBatchTokenCheckRequest(BaseModel):
+    texts: List[str]
+    model: str
+    max_tokens: Optional[int] = 128
+    sep: Optional[str] = '\n'
+
+
+class APIBatchTokenCheckkResponseItem(BaseModel):
+    tokenCount: int
+
+
+class APIBatchTokenCheckResponse(BaseModel):
+    prompts: list[APIBatchTokenCheckkResponseItem]
+    max_model_len: int =4096
+    max_num_id: int = 0
+    total_input_tokens: int = 0
+    sep_tokens: int = 1
+
+
 class APITokenCheckRequestItem(BaseModel):
     model: str
     prompt: str

@@ -232,6 +232,10 @@ async def api_generate(request: Request):
 async def api_get_status(request: Request):
     return worker.get_status()
 
+@app.post("/batch_count_token")
+async def api_batch_count_token(request: Request):
+    params = await request.json()
+    return worker.batch_count_token(params)
 
 @app.post("/count_token")
 async def api_count_token(request: Request):
